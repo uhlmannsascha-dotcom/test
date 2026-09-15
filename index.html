@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Head of Production Operating System</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter','system-ui','sans-serif'] } } } }
+</script>
+<style>
+  body{font-family:Inter,system-ui,sans-serif}
+  [x-cloak]{display:none}
+  .fade{animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#475569;border-radius:6px}::-webkit-scrollbar-track{background:#1e293b}
+  .toast{animation:toast .3s ease}
+  @keyframes toast{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+  .modal-bg{animation:fade .15s ease}
+</style>
+</head>
+<body class="bg-slate-950 text-slate-100">
+<div id="app"></div>
+<script src="app.js"></script>
+</body>
+</html>
