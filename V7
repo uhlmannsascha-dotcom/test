@@ -1,0 +1,3272 @@
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import {
+  Activity,
+  AlertTriangle,
+  ArrowRight,
+  BarChart3,
+  Calendar,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Compass,
+  Download,
+  Edit3,
+  ExternalLink,
+  Eye,
+  FileText,
+  Filter,
+  HelpCircle,
+  Layers,
+  LayoutDashboard,
+  Maximize2,
+  Minimize2,
+  Moon,
+  Plus,
+  RefreshCw,
+  Search,
+  Sliders,
+  Sun,
+  Target,
+  Trash2,
+  TrendingUp,
+  Users,
+  X,
+  Zap,
+  Link as LinkIcon,
+  Briefcase,
+  List,
+  Upload,
+  Save,
+  ShieldAlert,
+  Play,
+  CheckSquare,
+  MoveHorizontal
+} from "lucide-react";
+
+const INITIAL_STRATEGIC_AREAS = [
+  {
+    id: "SH-01",
+    title: "ERP Migration to D365 Cloud",
+    category: "ERP & Systems",
+    description: "System migration from Dynamics AX to D365 Cloud. Scope: Production, Warehouse, Sourcing, R&D in Austria. Hypercare until end of FY Jan 2027.",
+    impact: "Critical: Unified corporate IT landscape, operational continuity in high-revenue Q4.",
+    timeline: "2026-10-01 – 2027-01-29",
+    startDate: "2026-10-01",
+    endDate: "2027-01-29",
+    priority: "Very High",
+    status: "In Preparation",
+    progress: 18,
+    cost: "€450k",
+    plannedBenefit: "€950k",
+    actualBenefit: "€150k",
+    owner: "Head of Production / ERP Lead",
+    site: "Graz (HQ)",
+    evolutionX: 58,
+    visibilityY: 34,
+    showOnMap: true
+  },
+  {
+    id: "SH-02",
+    title: "Shopfloor Flow & Detailed Scheduling",
+    category: "Production & Planning",
+    description: "End-to-end value stream optimization from Graz scheduling to packaging in Murska Sobota. Eliminate manual availability checks.",
+    impact: "High: Drastic lead-time reduction and elimination of missing-parts idle times.",
+    timeline: "2027-02-01 – 2027-04-30",
+    startDate: "2027-02-01",
+    endDate: "2027-04-30",
+    priority: "High",
+    status: "In Progress",
+    progress: 35,
+    cost: "€120k",
+    plannedBenefit: "€320k",
+    actualBenefit: "€40k",
+    owner: "Head of Planning",
+    site: "AT / SLO",
+    evolutionX: 38,
+    visibilityY: 62,
+    showOnMap: true
+  },
+  {
+    id: "SH-03",
+    title: "Agentic AI in ERP Environments",
+    category: "ERP & Systems",
+    description: "Pilot AI agents for repetitive production order confirmations, scrap recording, and standard exceptions.",
+    impact: "High: Productivity lever for administrative manufacturing and shopfloor planning workflows.",
+    timeline: "2027-03-01 – 2027-12-31",
+    startDate: "2027-03-01",
+    endDate: "2027-12-31",
+    priority: "Medium",
+    status: "In Preparation",
+    progress: 10,
+    cost: "€25k",
+    plannedBenefit: "€180k",
+    actualBenefit: "€0k",
+    owner: "ERP Lead / XALAX",
+    site: "Graz (HQ)",
+    evolutionX: 18,
+    visibilityY: 28,
+    showOnMap: true
+  },
+  {
+    id: "SH-04",
+    title: "Cross-Functional Interfaces (Sales, R&D, QM)",
+    category: "Organization & Interfaces",
+    description: "Enforce strict workflows: Zero discontinued components in active sales orders, early production feedback in R&D gates, final-test QM.",
+    impact: "Very High: Margin protection, reduced rework, and scrap prevention at product rollout.",
+    timeline: "2026-10-01 – 2026-12-31",
+    startDate: "2026-10-01",
+    endDate: "2026-12-31",
+    priority: "High",
+    status: "In Preparation",
+    progress: 25,
+    cost: "€15k",
+    plannedBenefit: "€450k",
+    actualBenefit: "€80k",
+    owner: "Operations & Sales Leads",
+    site: "Graz (HQ)",
+    evolutionX: 62,
+    visibilityY: 72,
+    showOnMap: true
+  },
+  {
+    id: "SH-05",
+    title: "Sales Forecasting & S&OP Governance",
+    category: "Production & Planning",
+    description: "Institutionalize weekly S&OP cadence, secure strategic lighting components buffer from China, pilot forecasting with regional teams.",
+    impact: "Critical: Eliminate planning blind spots, optimize inventory, secure delivery reliability.",
+    timeline: "2026-10-01 – 2027-02-28",
+    startDate: "2026-10-01",
+    endDate: "2027-02-28",
+    priority: "Very High",
+    status: "In Progress",
+    progress: 35,
+    cost: "€30k",
+    plannedBenefit: "€850k",
+    actualBenefit: "€280k",
+    owner: "S&OP Taskforce Lead",
+    site: "Global",
+    evolutionX: 52,
+    visibilityY: 82,
+    showOnMap: true
+  },
+  {
+    id: "SH-06",
+    title: "Lean Management & Shopfloor Routines",
+    category: "Culture & Standards",
+    description: "Lean certification, Shopfloor Management Tier 1/Tier 2 standards roll-out, systematic 5S and CI routines across plants.",
+    impact: "Medium to High: Cultural anchoring of frontline accountability and sustainable waste reduction.",
+    timeline: "2026-09-21 – 2026-12-16",
+    startDate: "2026-09-21",
+    endDate: "2026-12-16",
+    priority: "High",
+    status: "In Progress",
+    progress: 40,
+    cost: "€18k",
+    plannedBenefit: "€120k",
+    actualBenefit: "€45k",
+    owner: "Operations Lead",
+    site: "Graz & SLO",
+    evolutionX: 68,
+    visibilityY: 55,
+    showOnMap: true
+  },
+  {
+    id: "SH-09",
+    title: "Electronics Assembly Improvement (SMD/ELPRO)",
+    category: "Production & Tech",
+    description: "SMED changeover reduction, DfM alignment with electronics R&D, eliminate manual separation and optical testing bottlenecks.",
+    impact: "High: Direct OEE improvement in luminaire electronics, lower scrap and changeover downtime.",
+    timeline: "2026-08-01 – 2027-03-31",
+    startDate: "2026-08-01",
+    endDate: "2027-03-31",
+    priority: "High",
+    status: "In Progress",
+    progress: 45,
+    cost: "€45k",
+    plannedBenefit: "€280k",
+    actualBenefit: "€110k",
+    owner: "Electronics Production Lead",
+    site: "Graz (HQ)",
+    evolutionX: 84,
+    visibilityY: 48,
+    showOnMap: true
+  }
+];
+
+const INITIAL_STANDARD_STEPS = [
+  { id: "VC-01", name: "Architectural Project Need", category: "Client / Market", evolutionX: 32, visibilityY: 94, owner: "Client Specifier", description: "Bespoke commercial lighting designs requested by architectural specifiers." },
+  { id: "VC-02", name: "Luminaire Final Assembly", category: "Core Assembly", evolutionX: 42, visibilityY: 78, owner: "Assembly Shop", description: "Modular luminaire line assembly, wiring, and driver integration." },
+  { id: "VC-03", name: "Optical & Electrical Quality Gate", category: "Quality Assurance", evolutionX: 64, visibilityY: 66, owner: "QA Lab", description: "Photometric testing, high-voltage safety testing, and visual sign-off." },
+  { id: "VC-04", name: "SMD Electronics Manufacturing", category: "Electronics SMD", evolutionX: 74, visibilityY: 50, owner: "SMD Line Team", description: "High-speed placement of LEDs on proprietary aluminium PCBs." },
+  { id: "VC-05", name: "Aluminium Profile Extrusion", category: "Raw Materials", evolutionX: 88, visibilityY: 38, owner: "Machining Partner", description: "CNC milling and precision cutting of luminaire body profiles." }
+];
+
+const INITIAL_WARDLEY_LINKS = [
+  { id: "WL-01", from: "VC-01", to: "VC-02", label: "specifies requirement" },
+  { id: "WL-02", from: "VC-02", to: "VC-03", label: "quality sign-off" },
+  { id: "WL-03", from: "VC-02", to: "VC-04", label: "requires LED boards" },
+  { id: "WL-04", from: "SH-01", to: "VC-02", label: "ERP order dispatch" }
+];
+
+const INITIAL_WARDLEY_VECTORS = [
+  {
+    id: "WV-01",
+    num: 1,
+    fromNodeId: "SH-02",
+    targetName: "Synchronized Digital Flow",
+    targetX: 75,
+    annotation: "Standardizing assembly workflow to shift scheduling from custom firefighting into product stage."
+  },
+  {
+    id: "WV-02",
+    num: 2,
+    fromNodeId: "VC-04",
+    targetName: "Standardized SMED Cell",
+    targetX: 92,
+    annotation: "Zero-loss SMED changeover transforms electronics SMD into an internal utility."
+  }
+];
+
+const INITIAL_WORK_PACKAGES = [
+  {
+    id: "WP-101",
+    title: "D365 Warehouse Barcode Scan Integration",
+    category: "ERP & Systems",
+    strategicAreaId: "SH-01",
+    owner: "IT Systems Team",
+    startDate: "2026-10-01",
+    dueDate: "2026-11-15",
+    status: "In Progress",
+    progress: 60,
+    priority: "High",
+    effortHours: 120,
+    actualHours: 80,
+    comment: "Scanner hardware delivered; API integration in progress.",
+    linkedRisk: "RSK-02",
+    linkedKPI: "KPI-01",
+    linkedOKR: "OKR-02"
+  },
+  {
+    id: "WP-102",
+    title: "Murska Sobota Packaging Buffer Redesign",
+    category: "Production",
+    strategicAreaId: "SH-02",
+    owner: "Lean Operations Team",
+    startDate: "2027-02-01",
+    dueDate: "2027-02-28",
+    status: "Planned",
+    progress: 15,
+    priority: "High",
+    effortHours: 80,
+    actualHours: 12,
+    comment: "Layout planning ongoing with shift supervisors.",
+    linkedRisk: "RSK-01",
+    linkedKPI: "KPI-03",
+    linkedOKR: "OKR-01"
+  }
+];
+
+const INITIAL_RISKS = [
+  {
+    id: "RSK-01",
+    title: "Custom Component Supply Chain Bottleneck",
+    category: "Supplier Risk",
+    probability: 4,
+    impact: 4,
+    riskScore: 16,
+    trend: "Stable",
+    reviewDate: "2026-11-30",
+    escalationLevel: "Level 2 - Management",
+    mitigationCost: "€25,000",
+    residualRisk: "Medium",
+    status: "Active",
+    owner: "Procurement Lead",
+    mitigation: "Dual-sourcing for specialized LED drivers and aluminium profiles; local safety stock buffers."
+  },
+  {
+    id: "RSK-02",
+    title: "D365 Hypercare Phase Overlap in Q4 Peak",
+    category: "Digital/ERP Risk",
+    probability: 5,
+    impact: 4,
+    riskScore: 20,
+    trend: "Increasing",
+    reviewDate: "2026-10-15",
+    escalationLevel: "Level 3 - Executive Board",
+    mitigationCost: "€40,000",
+    residualRisk: "High",
+    status: "Active",
+    owner: "ERP Migration Lead",
+    mitigation: "Dedicated external hypercare taskforce and temporary parallel run of legacy AX order entry."
+  }
+];
+
+const INITIAL_KPIS = [
+  { id: "KPI-01", name: "Overall Equipment Effectiveness (OEE)", category: "Operations", value: "76.4%", target: "82.0%", status: "Warning", trend: "+2.2%", owner: "Plant Manager", unit: "%", frequency: "Weekly", source: "MES / Logs", showOnDashboard: true },
+  { id: "KPI-02", name: "On-Time In-Full Delivery (OTIF)", category: "Operations", value: "93.8%", target: "97.0%", status: "Warning", trend: "+1.1%", owner: "Supply Chain Lead", unit: "%", frequency: "Weekly", source: "D365 ERP", showOnDashboard: true },
+  { id: "KPI-03", name: "Order Production Lead Time (DLZ)", category: "Operations", value: "10.6 d", target: "8.0 d", status: "Critical", trend: "-0.8 d", owner: "Head of Planning", unit: "days", frequency: "Weekly", source: "D365 ERP", showOnDashboard: true },
+  { id: "KPI-04", name: "Manufacturing Scrap Rate", category: "Quality", value: "1.9%", target: "1.5%", status: "Warning", trend: "-0.2%", owner: "QM Lead", unit: "%", frequency: "Weekly", source: "CAQ / D365", showOnDashboard: true }
+];
+
+const INITIAL_OKRS = [
+  {
+    id: "OKR-01",
+    objective: "Achieve Operational Excellence & Delivery Reliability",
+    owner: "Head of Production",
+    timeline: "Q1 2027",
+    progress: 70,
+    status: "In Progress",
+    keyResults: [
+      { id: "KR-1", text: "Increase OTIF from 93.8% to 97.0%", current: 93.8, target: 97.0, progress: 75 },
+      { id: "KR-2", text: "Reduce Order Lead Time (DLZ) from 10.6d to 8.0d", current: 10.6, target: 8.0, progress: 60 }
+    ]
+  }
+];
+
+const INITIAL_MEETING_ACTIONS = [
+  { actionId: "ACT-01", title: "Finalize D365 cutover fallback protocol", owner: "ERP Lead", dueDate: "2026-10-10", sourceMeeting: "Steering Committee #14", status: "Open", priority: "High", comments: "Review with external consultants on Friday." },
+  { actionId: "ACT-02", title: "Approve Slovenia buffer warehouse budget", owner: "Head of Production", dueDate: "2026-09-25", sourceMeeting: "Operations Review", status: "Overdue", priority: "Very High", comments: "Awaiting CFO sign-off." }
+];
+
+const INITIAL_SCENARIOS = [
+  { id: "SC-1", name: "Automated Assembly Cell Investment", type: "Machine Investment", impactKPI: "+5.2% OEE", impactCost: "€150k CAPEX", impactLeadTime: "-2.1 days", description: "Deploying automated robotic screw-driving and optical alignment cells in Graz." },
+  { id: "SC-2", name: "Second Shift Expansion in SLO", type: "Staffing Increase", impactKPI: "+12.0% Throughput", impactCost: "€85k OPEX/mo", impactLeadTime: "-1.5 days", description: "Adding 15 assembly operators for packaging and final luminaire box build." }
+];
+
+const INITIAL_PRODUCTION_LINES = [
+  { id: "LINE-01", line: "Line 1: High-Bay Luminaires", oee: "78.2%", avail: "91.0%", perf: "88.5%", qual: "97.1%", status: "Green", showInCockpit: true },
+  { id: "LINE-02", line: "Line 2: Linear Profiles", oee: "68.4%", avail: "82.0%", perf: "85.0%", qual: "98.0%", status: "Yellow", showInCockpit: true },
+  { id: "LINE-03", line: "Line 3: Electronics SMD", oee: "84.9%", avail: "94.5%", perf: "92.0%", qual: "97.5%", status: "Green", showInCockpit: true }
+];
+
+export default function App() {
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [activeTab, setActiveTab] = useState("wardley");
+
+  // LocalStorage-backed state
+  const [strategicAreas, setStrategicAreas] = useState(() => {
+    try {
+      const saved = localStorage.getItem("xal_strategic_areas");
+      return saved ? JSON.parse(saved) : INITIAL_STRATEGIC_AREAS;
+    } catch {
+      return INITIAL_STRATEGIC_AREAS;
+    }
+  });
+
+  const [standardSteps, setStandardSteps] = useState(() => {
+    try {
+      const saved = localStorage.getItem("xal_standard_steps");
+      return saved ? JSON.parse(saved) : INITIAL_STANDARD_STEPS;
+    } catch {
+      return INITIAL_STANDARD_STEPS;
+    }
+  });
+
+  const [wardleyLinks, setWardleyLinks] = useState(() => {
+    try {
+      const saved = localStorage.getItem("xal_wardley_links");
+      return saved ? JSON.parse(saved) : INITIAL_WARDLEY_LINKS;
+    } catch {
+      return INITIAL_WARDLEY_LINKS;
+    }
+  });
+
+  const [wardleyVectors, setWardleyVectors] = useState(() => {
+    try {
+      const saved = localStorage.getItem("xal_wardley_vectors");
+      return saved ? JSON.parse(saved) : INITIAL_WARDLEY_VECTORS;
+    } catch {
+      return INITIAL_WARDLEY_VECTORS;
+    }
+  });
+
+  const [workPackages, setWorkPackages] = useState(() => {
+    try {
+      const saved = localStorage.getItem("xal_work_packages");
+      return saved ? JSON.parse(saved) : INITIAL_WORK_PACKAGES;
+    } catch {
+      return INITIAL_WORK_PACKAGES;
+    }
+  });
+
+  const [risks, setRisks] = useState(() => {
+    try {
+      const saved = localStorage.getItem("xal_risks");
+      return saved ? JSON.parse(saved) : INITIAL_RISKS;
+    } catch {
+      return INITIAL_RISKS;
+    }
+  });
+
+  const [kpis, setKpis] = useState(() => {
+    try {
+      const saved = localStorage.getItem("xal_kpis");
+      return saved ? JSON.parse(saved) : INITIAL_KPIS;
+    } catch {
+      return INITIAL_KPIS;
+    }
+  });
+
+  const [okrs, setOkrs] = useState(() => {
+    try {
+      const saved = localStorage.getItem("xal_okrs");
+      return saved ? JSON.parse(saved) : INITIAL_OKRS;
+    } catch {
+      return INITIAL_OKRS;
+    }
+  });
+
+  const [meetingActions, setMeetingActions] = useState(() => {
+    try {
+      const saved = localStorage.getItem("xal_meeting_actions");
+      return saved ? JSON.parse(saved) : INITIAL_MEETING_ACTIONS;
+    } catch {
+      return INITIAL_MEETING_ACTIONS;
+    }
+  });
+
+  const [scenarios, setScenarios] = useState(() => {
+    try {
+      const saved = localStorage.getItem("xal_scenarios");
+      return saved ? JSON.parse(saved) : INITIAL_SCENARIOS;
+    } catch {
+      return INITIAL_SCENARIOS;
+    }
+  });
+
+  const [productionLines, setProductionLines] = useState(() => {
+    try {
+      const saved = localStorage.getItem("xal_production_lines");
+      return saved ? JSON.parse(saved) : INITIAL_PRODUCTION_LINES;
+    } catch {
+      return INITIAL_PRODUCTION_LINES;
+    }
+  });
+
+  const [lastSaved, setLastSaved] = useState(new Date().toLocaleTimeString());
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("xal_strategic_areas", JSON.stringify(strategicAreas));
+      localStorage.setItem("xal_standard_steps", JSON.stringify(standardSteps));
+      localStorage.setItem("xal_wardley_links", JSON.stringify(wardleyLinks));
+      localStorage.setItem("xal_wardley_vectors", JSON.stringify(wardleyVectors));
+      localStorage.setItem("xal_work_packages", JSON.stringify(workPackages));
+      localStorage.setItem("xal_risks", JSON.stringify(risks));
+      localStorage.setItem("xal_kpis", JSON.stringify(kpis));
+      localStorage.setItem("xal_okrs", JSON.stringify(okrs));
+      localStorage.setItem("xal_meeting_actions", JSON.stringify(meetingActions));
+      localStorage.setItem("xal_scenarios", JSON.stringify(scenarios));
+      localStorage.setItem("xal_production_lines", JSON.stringify(productionLines));
+      setLastSaved(new Date().toLocaleTimeString());
+    } catch (e) {
+      console.error("Auto-save failed", e);
+    }
+  }, [strategicAreas, standardSteps, wardleyLinks, wardleyVectors, workPackages, risks, kpis, okrs, meetingActions, scenarios, productionLines]);
+
+  const handleExportJSON = () => {
+    const bundle = {
+      timestamp: new Date().toISOString(),
+      version: "3.2",
+      strategicAreas,
+      standardSteps,
+      wardleyLinks,
+      wardleyVectors,
+      workPackages,
+      risks,
+      kpis,
+      okrs,
+      meetingActions,
+      scenarios,
+      productionLines
+    };
+    const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `XAL_Operations_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportJSON = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const parsed = JSON.parse(event.target.result);
+        if (parsed.strategicAreas) setStrategicAreas(parsed.strategicAreas);
+        if (parsed.standardSteps) setStandardSteps(parsed.standardSteps);
+        if (parsed.wardleyLinks) setWardleyLinks(parsed.wardleyLinks);
+        if (parsed.wardleyVectors) setWardleyVectors(parsed.wardleyVectors);
+        if (parsed.workPackages) setWorkPackages(parsed.workPackages);
+        if (parsed.risks) setRisks(parsed.risks);
+        if (parsed.kpis) setKpis(parsed.kpis);
+        if (parsed.okrs) setOkrs(parsed.okrs);
+        if (parsed.meetingActions) setMeetingActions(parsed.meetingActions);
+        if (parsed.scenarios) setScenarios(parsed.scenarios);
+        if (parsed.productionLines) setProductionLines(parsed.productionLines);
+      } catch (err) {
+        console.error("Failed to parse JSON backup", err);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const [wardleyLayerFilter, setWardleyLayerFilter] = useState("all"); // 'all' | 'standard' | 'initiatives'
+  const [isWardleyFullscreen, setIsWardleyFullscreen] = useState(false);
+  const [selectedWardleyNode, setSelectedWardleyNode] = useState(null);
+
+  // Drag state with grab offset calculation
+  const [draggingNode, setDraggingNode] = useState(null);
+  const wardleyCanvasRef = useRef(null);
+
+  // Connection Mode (click source node, then target node)
+  const [isConnectMode, setIsConnectMode] = useState(false);
+  const [connectSourceId, setConnectSourceId] = useState(null);
+
+  // Dashboard Filters
+  const [selectedKpiCategory, setSelectedKpiCategory] = useState("All");
+
+  // Modals state
+  const [isEditAreaModal, setIsEditAreaModal] = useState(false);
+  const [editingArea, setEditingArea] = useState(null);
+
+  const [isEditStandardStepModal, setIsEditStandardStepModal] = useState(false);
+  const [editingStandardStep, setEditingStandardStep] = useState(null);
+
+  const [isEditVectorModal, setIsEditVectorModal] = useState(false);
+  const [editingVector, setEditingVector] = useState(null);
+
+  const [isLinksManagerModal, setIsLinksManagerModal] = useState(false);
+  const [newLinkSource, setNewLinkSource] = useState("");
+  const [newLinkTarget, setNewLinkTarget] = useState("");
+  const [newLinkLabel, setNewLinkLabel] = useState("");
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null); // { type, id, name }
+
+  const [strategicViewMode, setStrategicViewMode] = useState("cards"); // 'cards' | 'table' | 'gantt'
+  const [isEditRiskModal, setIsEditRiskModal] = useState(false);
+  const [editingRisk, setEditingRisk] = useState(null);
+
+  const [isWpModalOpen, setIsWpModalOpen] = useState(false);
+  const [editingWpData, setEditingWpData] = useState(null);
+
+  const [wpViewMode, setWpViewMode] = useState("kanban"); // 'kanban' | 'gantt' | 'table'
+
+  const [isEditKpiModal, setIsEditKpiModal] = useState(false);
+  const [editingKpi, setEditingKpi] = useState(null);
+  const [isKpiSelectorModal, setIsKpiSelectorModal] = useState(false);
+
+  // Production Cockpit editing & figure selector modals
+  const [isEditLineModal, setIsEditLineModal] = useState(false);
+  const [editingLine, setEditingLine] = useState(null);
+  const [isLineSelectorModal, setIsLineSelectorModal] = useState(false);
+
+  const getStrategicAreaDates = (area) => {
+    let start = area.startDate;
+    let end = area.endDate;
+    if ((!start || !end) && area.timeline) {
+      const dates = area.timeline.match(/\d{4}-\d{2}-\d{2}/g);
+      if (dates && dates.length >= 2) {
+        start = start || dates[0];
+        end = end || dates[1];
+      }
+    }
+    // Intelligent fallback: ensure every Strategic Area is visible on the Gantt chart
+    if (!start) start = "2026-10-01";
+    if (!end) end = "2027-02-28";
+    let startMs = new Date(start).getTime();
+    let endMs = new Date(end).getTime();
+    if (isNaN(startMs)) startMs = new Date("2026-10-01").getTime();
+    if (isNaN(endMs) || endMs <= startMs) endMs = startMs + 90 * 86400000;
+    return { start, end, startMs, endMs };
+  };
+
+  const allRawNodes = useMemo(() => {
+    const areas = strategicAreas.map((a) => ({
+      id: a.id,
+      name: `${a.id}: ${a.title}`,
+      type: "Initiative",
+      evolutionX: a.evolutionX ?? 50,
+      visibilityY: a.visibilityY ?? 50,
+      owner: a.owner,
+      showOnMap: a.showOnMap !== false,
+      raw: a
+    }));
+
+    const steps = standardSteps.map((s) => ({
+      id: s.id,
+      name: s.name,
+      type: "Standard Step",
+      evolutionX: s.evolutionX ?? 50,
+      visibilityY: s.visibilityY ?? 50,
+      owner: s.owner,
+      showOnMap: true,
+      raw: s
+    }));
+
+    return [...steps, ...areas];
+  }, [strategicAreas, standardSteps]);
+
+  const visibleWardleyNodes = useMemo(() => {
+    return allRawNodes.filter((n) => {
+      if (!n.showOnMap) return false;
+      if (wardleyLayerFilter === "standard") return n.type === "Standard Step";
+      if (wardleyLayerFilter === "initiatives") return n.type === "Initiative";
+      return true;
+    });
+  }, [allRawNodes, wardleyLayerFilter]);
+
+  const nodePositionMap = useMemo(() => {
+    const map = {};
+    allRawNodes.forEach((n) => {
+      map[n.id] = { x: n.evolutionX, y: n.visibilityY, name: n.name, type: n.type };
+    });
+    return map;
+  }, [allRawNodes]);
+
+  const handleMouseDownNode = (node, e) => {
+    e.stopPropagation();
+
+    if (isConnectMode) {
+      if (!connectSourceId) {
+        setConnectSourceId(node.id);
+      } else if (connectSourceId !== node.id) {
+        const newLink = {
+          id: `WL-${Date.now()}`,
+          from: connectSourceId,
+          to: node.id,
+          label: "depends on"
+        };
+        setWardleyLinks((prev) => [...prev, newLink]);
+        setConnectSourceId(null);
+        setIsConnectMode(false);
+      }
+      return;
+    }
+
+    if (!wardleyCanvasRef.current) return;
+    const rect = wardleyCanvasRef.current.getBoundingClientRect();
+    const cursorX = ((e.clientX - rect.left) / rect.width) * 100;
+    const cursorY = 100 - ((e.clientY - rect.top) / rect.height) * 100;
+
+    setDraggingNode({
+      id: node.id,
+      offsetX: node.evolutionX - cursorX,
+      offsetY: node.visibilityY - cursorY
+    });
+  };
+
+  const handleCanvasMouseMove = (e) => {
+    if (!draggingNode || !wardleyCanvasRef.current) return;
+    const rect = wardleyCanvasRef.current.getBoundingClientRect();
+    const cursorX = ((e.clientX - rect.left) / rect.width) * 100;
+    const cursorY = 100 - ((e.clientY - rect.top) / rect.height) * 100;
+
+    const newX = Math.max(5, Math.min(95, Math.round(cursorX + draggingNode.offsetX)));
+    const newY = Math.max(8, Math.min(95, Math.round(cursorY + draggingNode.offsetY)));
+
+    if (draggingNode.id.startsWith("VC-")) {
+      setStandardSteps((prev) =>
+        prev.map((s) => (s.id === draggingNode.id ? { ...s, evolutionX: newX, visibilityY: newY } : s))
+      );
+    } else {
+      setStrategicAreas((prev) =>
+        prev.map((a) => (a.id === draggingNode.id ? { ...a, evolutionX: newX, visibilityY: newY } : a))
+      );
+    }
+  };
+
+  const handleCanvasMouseUp = () => setDraggingNode(null);
+
+  const executeDelete = () => {
+    if (!deleteTarget) return;
+    const { type, id } = deleteTarget;
+
+    if (type === "strategicArea" || type === "area") {
+      setStrategicAreas((prev) => prev.filter((a) => a.id !== id));
+      setWardleyLinks((prev) => prev.filter((l) => l.from !== id && l.to !== id));
+      setWardleyVectors((prev) => prev.filter((v) => v.fromNodeId !== id));
+    } else if (type === "standardStep" || type === "standard") {
+      setStandardSteps((prev) => prev.filter((s) => s.id !== id));
+      setWardleyLinks((prev) => prev.filter((l) => l.from !== id && l.to !== id));
+      setWardleyVectors((prev) => prev.filter((v) => v.fromNodeId !== id));
+    } else if (type === "vector") {
+      setWardleyVectors((prev) => prev.filter((v) => v.id !== id));
+    } else if (type === "link") {
+      setWardleyLinks((prev) => prev.filter((l) => l.id !== id));
+    } else if (type === "workPackage") {
+      setWorkPackages((prev) => prev.filter((w) => w.id !== id));
+    } else if (type === "risk") {
+      setRisks((prev) => prev.filter((r) => r.id !== id));
+    } else if (type === "kpi") {
+      setKpis((prev) => prev.filter((k) => k.id !== id));
+    } else if (type === "action") {
+      setMeetingActions((prev) => prev.filter((a) => a.actionId !== id));
+    } else if (type === "productionLine") {
+      setProductionLines((prev) => prev.filter((l) => l.id !== id));
+    }
+
+    setIsDeleteModalOpen(false);
+    setDeleteTarget(null);
+    setSelectedWardleyNode(null);
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "On Target":
+      case "In Progress":
+      case "Active":
+        return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
+      case "Warning":
+      case "In Preparation":
+      case "Planned":
+      case "Open":
+        return "bg-amber-500/15 text-amber-400 border-amber-500/30";
+      case "Critical":
+      case "Very High":
+      case "Overdue":
+        return "bg-rose-500/15 text-rose-400 border-rose-500/30";
+      default:
+        return isDarkMode ? "bg-slate-800 text-slate-400 border-slate-700" : "bg-slate-200 text-slate-700 border-slate-300";
+    }
+  };
+
+  const bgClass = isDarkMode ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900";
+  const cardBgClass = isDarkMode ? "bg-slate-900/80 border-slate-800" : "bg-white border-slate-200 shadow-sm";
+
+  return (
+    <div className={`min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-white ${bgClass}`}>
+      {/* HEADER & TOP BAR */}
+      <header className={`sticky top-0 z-40 px-6 py-3 border-b flex items-center justify-between backdrop-blur ${isDarkMode ? "bg-slate-900/90 border-slate-800" : "bg-white/90 border-slate-200"}`}>
+        <div className="flex items-center gap-3">
+          <div
+            style={{
+              backgroundColor: "#000",
+              color: "#fff",
+              letterSpacing: "0.22em",
+              fontFamily: "ui-sans-serif, system-ui, sans-serif"
+            }}
+            className="w-11 h-8 rounded flex items-center justify-center font-extrabold text-[12px] shadow-sm select-none"
+          >
+            XAL
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm font-bold tracking-tight">Executive Operations & Strategy Platform</h1>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono">
+                Auto-Saved ({lastSaved})
+              </span>
+            </div>
+            <p className={`text-[11px] ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>Head of Production Operating System v3.2</p>
+          </div>
+        </div>
+
+        {/* Global Tab Navigation */}
+        <nav className={`flex items-center p-1 rounded-xl border text-xs gap-0.5 overflow-x-auto ${isDarkMode ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-200"}`}>
+          {[
+            { id: "wardley", label: "Wardley Map", icon: Compass },
+            { id: "dashboard", label: "Executive Dashboard", icon: LayoutDashboard },
+            { id: "strategic", label: "Strategic Focus Areas", icon: Target },
+            { id: "workpackages", label: "Work Packages", icon: Briefcase },
+            { id: "production", label: "Production Cockpit", icon: Activity },
+            { id: "risks", label: "Risk Compass 2.0", icon: ShieldAlert },
+            { id: "actions", label: "Meeting Actions", icon: CheckSquare },
+            { id: "scenarios", label: "Scenario Sim", icon: Play }
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition ${
+                  isActive
+                    ? "bg-cyan-600 text-white shadow-sm"
+                    : isDarkMode
+                    ? "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/70"
+                }`}
+              >
+                <Icon size={13} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Import/Export & Theme */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportJSON}
+            className="p-2 rounded-lg border text-xs flex items-center gap-1.5 font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 transition"
+            title="Export Entire Platform Backup (JSON)"
+          >
+            <Download size={13} />
+            <span className="hidden sm:inline">Export</span>
+          </button>
+
+          <label className="p-2 rounded-lg border text-xs flex items-center gap-1.5 font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 cursor-pointer transition" title="Import Platform Backup (JSON)">
+            <Upload size={13} />
+            <span className="hidden sm:inline">Import</span>
+            <input type="file" accept=".json" onChange={handleImportJSON} className="hidden" />
+          </label>
+
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`p-2 rounded-lg border text-xs flex items-center gap-1.5 font-medium transition ${
+              isDarkMode ? "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700" : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200"
+            }`}
+            title="Toggle Light/Dark Theme"
+          >
+            {isDarkMode ? <Sun size={14} className="text-amber-400" /> : <Moon size={14} className="text-cyan-600" />}
+          </button>
+        </div>
+      </header>
+
+      {/* MAIN CONTAINER */}
+      <main className="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+
+        {}
+        {activeTab === "wardley" && (
+          <div className="space-y-4 animate-fadeIn">
+            {/* Wardley Map Toolbar */}
+            <div className={`p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 ${cardBgClass}`}>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                  <Compass size={18} />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold tracking-tight">Wardley Value Chain Map & Evolution Vectors</h2>
+                  <p className={`text-xs ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
+                    Drag nodes, click to connect dependency arrows, and mark strategic evolution shifts.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap text-xs">
+                {/* Layer Filters */}
+                <div className={`flex items-center p-1 rounded-lg border ${isDarkMode ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-300"}`}>
+                  <button
+                    onClick={() => setWardleyLayerFilter("all")}
+                    className={`px-2.5 py-1 rounded text-[11px] font-medium transition ${
+                      wardleyLayerFilter === "all" ? "bg-cyan-600 text-white" : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    All ({allRawNodes.filter(n => n.showOnMap).length})
+                  </button>
+                  <button
+                    onClick={() => setWardleyLayerFilter("standard")}
+                    className={`px-2.5 py-1 rounded text-[11px] font-medium transition ${
+                      wardleyLayerFilter === "standard" ? "bg-cyan-600 text-white" : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    Standard Steps ({standardSteps.length})
+                  </button>
+                  <button
+                    onClick={() => setWardleyLayerFilter("initiatives")}
+                    className={`px-2.5 py-1 rounded text-[11px] font-medium transition ${
+                      wardleyLayerFilter === "initiatives" ? "bg-cyan-600 text-white" : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    Initiatives ({strategicAreas.filter(a => a.showOnMap !== false).length})
+                  </button>
+                </div>
+
+                {/* Add Value Chain Step (VC) */}
+                <button
+                  onClick={() => {
+                    const newId = `VC-0${standardSteps.length + 1}`;
+                    setEditingStandardStep({
+                      id: newId,
+                      name: "New Value Chain Step",
+                      category: "Core Assembly",
+                      evolutionX: 45,
+                      visibilityY: 55,
+                      owner: "Assembly Line Team",
+                      description: "Core manufacturing value chain step."
+                    });
+                    setIsEditStandardStepModal(true);
+                  }}
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-medium border border-slate-700 flex items-center gap-1.5 transition"
+                >
+                  <Plus size={13} />
+                  <span>+ Value Chain Step</span>
+                </button>
+
+                {/* Add Strategic Focus Area (SH) */}
+                <button
+                  onClick={() => {
+                    const newId = `SH-0${strategicAreas.length + 1}`;
+                    setEditingArea({
+                      id: newId,
+                      title: "New Strategic Focus Area",
+                      category: "Production & Planning",
+                      description: "Initiative description.",
+                      impact: "High: Productivity lever.",
+                      timeline: "2026-11-01 – 2027-04-30",
+                      startDate: "2026-11-01",
+                      endDate: "2027-04-30",
+                      priority: "High",
+                      status: "In Preparation",
+                      progress: 0,
+                      cost: "€50k",
+                      plannedBenefit: "€200k",
+                      actualBenefit: "€0k",
+                      owner: "Head of Production",
+                      site: "Graz (HQ)",
+                      evolutionX: 40,
+                      visibilityY: 60,
+                      showOnMap: true
+                    });
+                    setIsEditAreaModal(true);
+                  }}
+                  className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-semibold flex items-center gap-1.5 transition"
+                >
+                  <Plus size={13} />
+                  <span>+ Strategic Area (SH)</span>
+                </button>
+
+                {/* Interactive Connect Mode Toggle */}
+                <button
+                  onClick={() => {
+                    setIsConnectMode(!isConnectMode);
+                    setConnectSourceId(null);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg font-semibold border flex items-center gap-1.5 transition ${
+                    isConnectMode
+                      ? "bg-amber-600 text-white border-amber-500 animate-pulse shadow-md"
+                      : "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"
+                  }`}
+                  title="Click source node then target node to draw dependency arrow"
+                >
+                  <LinkIcon size={13} />
+                  <span>{isConnectMode ? (connectSourceId ? "Select Target Node..." : "Select Source Node...") : "Connect Nodes"}</span>
+                </button>
+
+                {/* Dependency Links Manager */}
+                <button
+                  onClick={() => setIsLinksManagerModal(true)}
+                  className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 font-mono transition"
+                  title="Manage connection lines"
+                >
+                  Links ({wardleyLinks.length})
+                </button>
+
+                {/* Add Improvement Vector */}
+                <button
+                  onClick={() => {
+                    const newNum = wardleyVectors.length + 1;
+                    const defaultOrigin = allRawNodes[0]?.id || "VC-02";
+                    const originNode = nodePositionMap[defaultOrigin];
+                    setEditingVector({
+                      id: `WV-0${newNum}`,
+                      num: newNum,
+                      fromNodeId: defaultOrigin,
+                      targetName: "Optimized State",
+                      targetX: Math.min(95, (originNode ? originNode.x : 40) + 30),
+                      annotation: "Standardizing process workflow to shift evolution toward commodity stage."
+                    });
+                    setIsEditVectorModal(true);
+                  }}
+                  className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg font-semibold border border-rose-500/40 flex items-center gap-1.5 shadow-md transition"
+                >
+                  <TrendingUp size={13} />
+                  <span>+ Improvement Vector</span>
+                </button>
+
+                {/* Fullscreen Toggle */}
+                <button
+                  onClick={() => setIsWardleyFullscreen(!isWardleyFullscreen)}
+                  className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition"
+                  title="Toggle Fullscreen"
+                >
+                  {isWardleyFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Wardley 2D Canvas */}
+            <div
+              className={`rounded-2xl border relative overflow-hidden select-none transition-all duration-300 ${
+                isWardleyFullscreen ? "fixed inset-4 z-50 shadow-2xl h-[calc(100vh-2rem)]" : "h-[650px]"
+              } ${isDarkMode ? "bg-slate-950 border-slate-800" : "bg-slate-50 border-slate-300"} ${
+                isConnectMode ? "cursor-crosshair ring-2 ring-amber-500/50" : ""
+              }`}
+              onMouseMove={handleCanvasMouseMove}
+              onMouseUp={handleCanvasMouseUp}
+              ref={wardleyCanvasRef}
+            >
+              {/* Evolution Phases (4 Vertical Columns) */}
+              <div className="absolute inset-0 grid grid-cols-4 pointer-events-none divide-x divide-slate-800/40">
+                {[
+                  { name: "Genesis", subtitle: "Novel, experimental" },
+                  { name: "Custom-Built", subtitle: "Bespoke, in-house solutions" },
+                  { name: "Product / Rental", subtitle: "Standard commercial off-the-shelf" },
+                  { name: "Commodity / Utility", subtitle: "Highly standardized, pervasive" }
+                ].map((phase, idx) => (
+                  <div key={idx} className="h-full flex flex-col justify-between p-3">
+                    <div className="border-b border-slate-800/40 pb-2">
+                      <span className="text-[11px] font-bold tracking-wider uppercase text-cyan-400/80">{phase.name}</span>
+                      <p className="text-[9px] text-slate-500">{phase.subtitle}</p>
+                    </div>
+                    <div className="text-[10px] text-slate-600 font-mono">Stage {idx + 1}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Axis Orientation Labels */}
+              <div className="absolute left-2 top-1/2 -translate-y-1/2 -rotate-90 origin-center text-[10px] uppercase font-bold tracking-widest text-slate-500 pointer-events-none">
+                ↑ Value Chain Visibility (User Need to Core Infrastructure)
+              </div>
+              <div className="absolute bottom-2 right-4 text-[10px] uppercase font-bold tracking-widest text-slate-500 pointer-events-none">
+                Evolution (Ubiquity & Certainty) →
+              </div>
+
+              {/* SVG Layer: Dependency Lines and Coupled Improvement Vectors */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                <defs>
+                  <marker id="arrow-dep" viewBox="0 0 10 10" refX="18" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 1 L 10 5 L 0 9 z" fill={isDarkMode ? "#64748b" : "#94a3b8"} />
+                  </marker>
+                  <marker id="arrow-vector" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444" />
+                  </marker>
+                </defs>
+
+                {/* Dependency Connection Lines */}
+                {wardleyLinks.map((link) => {
+                  const fromNode = nodePositionMap[link.from];
+                  const toNode = nodePositionMap[link.to];
+                  if (!fromNode || !toNode) return null;
+
+                  return (
+                    <line
+                      key={link.id}
+                      x1={`${fromNode.x}%`}
+                      y1={`${100 - fromNode.y}%`}
+                      x2={`${toNode.x}%`}
+                      y2={`${100 - toNode.y}%`}
+                      stroke={isDarkMode ? "#475569" : "#cbd5e1"}
+                      strokeWidth="1.5"
+                      strokeDasharray="3 3"
+                      markerEnd="url(#arrow-dep)"
+                    />
+                  );
+                })}
+
+                {/* Red Improvement Vectors (Coupled to origin node position) */}
+                {wardleyVectors.map((vec) => {
+                  const originNode = nodePositionMap[vec.fromNodeId];
+                  if (!originNode) return null;
+                  const startX = originNode.x;
+                  const startY = originNode.y;
+
+                  return (
+                    <g key={vec.id}>
+                      <line
+                        x1={`${startX}%`}
+                        y1={`${100 - startY}%`}
+                        x2={`${vec.targetX}%`}
+                        y2={`${100 - startY}%`}
+                        stroke="#ef4444"
+                        strokeWidth="2.5"
+                        strokeDasharray="6 4"
+                        markerEnd="url(#arrow-vector)"
+                      />
+                      <circle cx={`${vec.targetX}%`} cy={`${100 - startY}%`} r="4.5" fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" />
+                    </g>
+                  );
+                })}
+              </svg>
+
+              {/* Floating Canvas Annotations Box */}
+              <div className={`absolute top-4 left-8 p-3.5 rounded-xl border max-w-xs shadow-lg backdrop-blur z-20 text-xs ${isDarkMode ? "bg-slate-900/90 border-slate-700 text-slate-200" : "bg-white/95 border-slate-300 text-slate-800"}`}>
+                <div className="flex items-center justify-between pb-1.5 border-b border-slate-700/60 mb-2">
+                  <span className="font-bold text-cyan-400">Map Annotations & Shifts</span>
+                  <span className="text-[10px] text-slate-400 font-mono">{wardleyVectors.length} Vectors</span>
+                </div>
+                <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                  {wardleyVectors.map((v) => (
+                    <div key={v.id} className="flex items-center justify-between gap-1.5 text-[11px] leading-tight hover:bg-slate-800/40 p-1 rounded transition group">
+                      <div
+                        onClick={() => { setEditingVector(v); setIsEditVectorModal(true); }}
+                        className="flex items-center gap-1.5 cursor-pointer flex-1 min-w-0"
+                        title="Click to edit improvement vector"
+                      >
+                        <span className="w-4 h-4 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center text-[10px] font-bold shrink-0">
+                          {v.num}
+                        </span>
+                        <div className="truncate">
+                          <span className="font-semibold text-slate-100">{v.targetName}: </span>
+                          <span className={isDarkMode ? "text-slate-300" : "text-slate-600"}>{v.annotation}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setDeleteTarget({ type: "vector", id: v.id, name: `Vector #${v.num}: ${v.targetName}` });
+                          setIsDeleteModalOpen(true);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-400 p-0.5"
+                        title="Delete Vector"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Render Visible Nodes on Canvas */}
+              {visibleWardleyNodes.map((node) => {
+                const isInitiative = node.type === "Initiative";
+                const isSelected = selectedWardleyNode?.id === node.id;
+                const isDragging = draggingNode?.id === node.id;
+                const isSource = connectSourceId === node.id;
+
+                return (
+                  <div
+                    key={node.id}
+                    onMouseDown={(e) => handleMouseDownNode(node, e)}
+                    onClick={() => setSelectedWardleyNode(node)}
+                    style={{
+                      left: `${node.evolutionX}%`,
+                      bottom: `${node.visibilityY}%`,
+                      transform: "translate(-50%, 50%)"
+                    }}
+                    className={`absolute cursor-grab active:cursor-grabbing z-20 flex flex-col items-center group transition-transform ${
+                      isDragging ? "scale-110 z-30" : "hover:scale-105"
+                    }`}
+                  >
+                    {/* Node Visual Badge */}
+                    <div
+                      className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] shadow-md border-2 transition ${
+                        isSource
+                          ? "bg-amber-500 text-white border-white animate-bounce ring-4 ring-amber-400/50"
+                          : isInitiative
+                          ? "bg-cyan-600 text-white border-white shadow-cyan-900/50"
+                          : "bg-slate-700 text-slate-200 border-slate-400"
+                      } ${isSelected ? "ring-4 ring-cyan-400" : ""}`}
+                    >
+                      {isInitiative ? "SH" : "VC"}
+                    </div>
+
+                    {/* Node Label Card */}
+                    <div
+                      className={`mt-1 text-[10px] font-semibold whitespace-nowrap px-2 py-0.5 rounded shadow border backdrop-blur flex items-center gap-1 ${
+                        isDarkMode ? "bg-slate-900/90 text-slate-200 border-slate-700" : "bg-white/95 text-slate-900 border-slate-300"
+                      }`}
+                    >
+                      <span>{node.name}</span>
+                    </div>
+
+                    {/* Quick Action Overlay on Hover */}
+                    <div className="opacity-0 group-hover:opacity-100 absolute -top-7 flex items-center gap-1 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700 text-white shadow-lg transition">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isInitiative) {
+                            setEditingArea({ ...node.raw });
+                            setIsEditAreaModal(true);
+                          } else {
+                            setEditingStandardStep({ ...node.raw });
+                            setIsEditStandardStepModal(true);
+                          }
+                        }}
+                        className="p-1 hover:text-cyan-400"
+                        title="Edit component"
+                      >
+                        <Edit3 size={11} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteTarget({
+                            type: isInitiative ? "strategicArea" : "standardStep",
+                            id: node.id,
+                            name: node.name
+                          });
+                          setIsDeleteModalOpen(true);
+                        }}
+                        className="p-1 hover:text-rose-400"
+                        title="Delete component"
+                      >
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Coupled Numbered Vector Badges */}
+              {wardleyVectors.map((v) => {
+                const originNode = nodePositionMap[v.fromNodeId];
+                if (!originNode) return null;
+
+                return (
+                  <div
+                    key={`badge-${v.id}`}
+                    style={{
+                      left: `${(originNode.x + v.targetX) / 2}%`,
+                      bottom: `${originNode.y}%`,
+                      transform: "translate(-50%, 50%)"
+                    }}
+                    className="absolute z-10 flex items-center justify-center cursor-pointer group"
+                    onClick={() => {
+                      setEditingVector(v);
+                      setIsEditVectorModal(true);
+                    }}
+                    title="Click to edit improvement vector"
+                  >
+                    <span className="w-5 h-5 rounded-full bg-rose-600 text-white font-bold text-[10px] flex items-center justify-center shadow-lg border border-white hover:scale-125 transition">
+                      {v.num}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Selected Node Inspector Drawer */}
+            {selectedWardleyNode && (
+              <div className={`p-4 rounded-xl border flex items-center justify-between ${cardBgClass}`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-cyan-600 text-white flex items-center justify-center font-mono font-bold text-xs">
+                    {selectedWardleyNode.id}
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-100">{selectedWardleyNode.name}</h4>
+                    <p className="text-[11px] text-slate-400">
+                      Type: <span className="font-semibold text-cyan-400">{selectedWardleyNode.type}</span> • Owner: {selectedWardleyNode.owner} • Coordinates: Evolution {selectedWardleyNode.evolutionX}% / Visibility {selectedWardleyNode.visibilityY}%
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      if (selectedWardleyNode.type === "Initiative") {
+                        setEditingArea(selectedWardleyNode.raw);
+                        setIsEditAreaModal(true);
+                      } else {
+                        setEditingStandardStep(selectedWardleyNode.raw);
+                        setIsEditStandardStepModal(true);
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition"
+                  >
+                    <Edit3 size={13} />
+                    <span>Edit Properties</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setDeleteTarget({
+                        type: selectedWardleyNode.type === "Initiative" ? "strategicArea" : "standardStep",
+                        id: selectedWardleyNode.id,
+                        name: selectedWardleyNode.name
+                      });
+                      setIsDeleteModalOpen(true);
+                    }}
+                    className="p-1.5 text-rose-400 hover:bg-rose-500/20 rounded-lg transition"
+                    title="Delete"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                  <button onClick={() => setSelectedWardleyNode(null)} className="text-slate-500 hover:text-slate-300 p-1">
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {}
+        {activeTab === "dashboard" && (
+          <div className="space-y-6 animate-fadeIn">
+            {/* Header & Filter Controls */}
+            <div className={`p-5 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-4 ${cardBgClass}`}>
+              <div>
+                <h2 className="text-base font-bold tracking-tight">Executive Situation Room</h2>
+                <p className={`text-xs mt-1 ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
+                  Real-time operational health across production lines, quality gates, and financial targets.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Category Pills */}
+                {["All", "Operations", "Quality", "Supply Chain", "Financial", "People", "Risks"].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedKpiCategory(cat)}
+                    className={`px-3 py-1 rounded-lg text-xs font-medium border transition ${
+                      selectedKpiCategory === cat
+                        ? "bg-cyan-600 text-white border-cyan-500"
+                        : isDarkMode
+                        ? "bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800"
+                        : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+
+                {/* Dashboard KPI Selector Button */}
+                <button
+                  onClick={() => setIsKpiSelectorModal(true)}
+                  className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-medium transition"
+                >
+                  Select KPIs ({kpis.filter(k => k.showOnDashboard !== false).length}/{kpis.length})
+                </button>
+
+                {/* Add New KPI Button */}
+                <button
+                  onClick={() => {
+                    const newKpi = {
+                      id: `KPI-${(kpis.length + 1).toString().padStart(2, "0")}`,
+                      name: "New Production Metric",
+                      category: "Operations",
+                      value: "0.0%",
+                      target: "100.0%",
+                      status: "Warning",
+                      trend: "+0.0%",
+                      owner: "Plant Lead",
+                      unit: "%",
+                      frequency: "Weekly",
+                      source: "Manual Entry",
+                      showOnDashboard: true
+                    };
+                    setEditingKpi(newKpi);
+                    setIsEditKpiModal(true);
+                  }}
+                  className="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition"
+                >
+                  <Plus size={13} />
+                  <span>+ Add KPI</span>
+                </button>
+              </div>
+            </div>
+
+            {/* KPI Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {kpis
+                .filter((k) => k.showOnDashboard !== false)
+                .filter((k) => selectedKpiCategory === "All" || k.category === selectedKpiCategory)
+                .map((kpi) => (
+                  <div
+                    key={kpi.id}
+                    className={`p-4 rounded-xl border flex flex-col justify-between transition hover:border-cyan-500/50 relative group ${cardBgClass}`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] font-medium">
+                        <span className={`px-2 py-0.5 rounded border text-[10px] font-mono ${getStatusBadge(kpi.status)}`}>
+                          {kpi.status}
+                        </span>
+                        <div className="flex items-center gap-1 text-slate-400">
+                          <button
+                            onClick={() => {
+                              setEditingKpi({ ...kpi });
+                              setIsEditKpiModal(true);
+                            }}
+                            className="p-1 hover:text-cyan-400 text-slate-400 transition"
+                            title="Edit KPI value and targets"
+                          >
+                            <Edit3 size={13} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setDeleteTarget({ type: "kpi", id: kpi.id, name: kpi.name });
+                              setIsDeleteModalOpen(true);
+                            }}
+                            className="p-1 hover:text-rose-400 text-slate-400 transition"
+                            title="Delete KPI"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+
+                      <h3 className="text-xs font-semibold mt-2.5 leading-snug">{kpi.name}</h3>
+                      <div className={`text-[10px] mt-0.5 ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
+                        Owner: {kpi.owner} • {kpi.frequency}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-slate-800/60">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-2xl font-bold tracking-tight text-white">{kpi.value}</span>
+                        <span className="text-xs font-medium text-cyan-400 font-mono">{kpi.trend}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1.5">
+                        <span>Target: {kpi.target}</span>
+                        <span className="font-mono text-[10px]">{kpi.source}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            {/* OKR Summary Section on Dashboard */}
+            <div className={`p-5 rounded-2xl border space-y-4 ${cardBgClass}`}>
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <Target size={16} className="text-cyan-400" />
+                  <h3 className="text-sm font-bold text-white">Strategic Objectives & Key Results (OKRs)</h3>
+                </div>
+                <span className="text-xs text-slate-400">Quarterly Roll-Up Overview</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {okrs.map((okr) => (
+                  <div key={okr.id} className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-xs font-bold text-cyan-400">{okr.id}</span>
+                      <span className="text-xs text-slate-400">{okr.timeline} • {okr.owner}</span>
+                    </div>
+                    <h4 className="text-xs font-bold text-white">{okr.objective}</h4>
+                    <div className="space-y-2 pt-1">
+                      {okr.keyResults.map((kr) => (
+                        <div key={kr.id} className="space-y-1 text-xs">
+                          <div className="flex justify-between text-[11px]">
+                            <span className="text-slate-300">{kr.text}</span>
+                            <span className="font-bold text-cyan-400">{kr.progress}%</span>
+                          </div>
+                          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-cyan-500 h-full rounded-full" style={{ width: `${kr.progress}%` }}></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {}
+        {activeTab === "strategic" && (
+          <div className="space-y-4 animate-fadeIn">
+            <div className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${cardBgClass}`}>
+              <div>
+                <h2 className="text-sm font-bold text-white">Strategic Focus Areas & Implementation Initiatives</h2>
+                <p className="text-xs text-slate-400">Directly link projects with EBIT benefits, timelines, and Wardley Map visibility.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={`flex items-center p-1 rounded-lg border text-xs ${isDarkMode ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-300"}`}>
+                  <button
+                    onClick={() => setStrategicViewMode("cards")}
+                    className={`px-3 py-1 rounded font-medium transition ${strategicViewMode === "cards" ? "bg-cyan-600 text-white" : "text-slate-400 hover:text-slate-200"}`}
+                  >
+                    Cards
+                  </button>
+                  <button
+                    onClick={() => setStrategicViewMode("table")}
+                    className={`px-3 py-1 rounded font-medium transition ${strategicViewMode === "table" ? "bg-cyan-600 text-white" : "text-slate-400 hover:text-slate-200"}`}
+                  >
+                    List / Table
+                  </button>
+                  <button
+                    onClick={() => setStrategicViewMode("gantt")}
+                    className={`px-3 py-1 rounded font-medium transition ${strategicViewMode === "gantt" ? "bg-cyan-600 text-white" : "text-slate-400 hover:text-slate-200"}`}
+                  >
+                    Gantt Chart
+                  </button>
+                </div>
+                <button
+                  onClick={() => {
+                    const newId = `SH-0${strategicAreas.length + 1}`;
+                    setEditingArea({
+                      id: newId,
+                      title: "New Strategic Focus Area",
+                      category: "Production & Planning",
+                      description: "Strategic objective description.",
+                      impact: "High: Lead-time reduction and efficiency.",
+                      timeline: "2026-11-01 – 2027-04-30",
+                      startDate: "2026-11-01",
+                      endDate: "2027-04-30",
+                      priority: "High",
+                      status: "In Preparation",
+                      progress: 0,
+                      cost: "€60k",
+                      plannedBenefit: "€250k",
+                      actualBenefit: "€0k",
+                      owner: "Head of Production",
+                      site: "Graz (HQ)",
+                      evolutionX: 45,
+                      visibilityY: 60,
+                      showOnMap: true
+                    });
+                    setIsEditAreaModal(true);
+                  }}
+                  className="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition whitespace-nowrap"
+                >
+                  <Plus size={13} />
+                  <span>+ Add Strategic Area</span>
+                </button>
+              </div>
+            </div>
+
+            {/* View 1: Cards */}
+            {strategicViewMode === "cards" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {strategicAreas.map((area) => {
+                  const linkedWps = workPackages.filter(
+                    (wp) => wp.strategicAreaId === area.id || wp.ref === area.id
+                  );
+                  return (
+                    <div key={area.id} className={`p-5 rounded-xl border flex flex-col justify-between relative group ${cardBgClass}`}>
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-xs font-bold text-cyan-400">{area.id}</span>
+                          <div className="flex items-center gap-2">
+                            <label className="flex items-center gap-1 text-[10px] text-slate-400 cursor-pointer" title="Toggle visibility on Wardley Map">
+                              <input
+                                type="checkbox"
+                                checked={area.showOnMap !== false}
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  setStrategicAreas((prev) => prev.map((a) => (a.id === area.id ? { ...a, showOnMap: checked } : a)));
+                                }}
+                                className="accent-cyan-500 rounded"
+                              />
+                              <span>Map</span>
+                            </label>
+                            <span className={`px-2 py-0.5 rounded border text-[10px] ${getStatusBadge(area.status)}`}>{area.status}</span>
+                          </div>
+                        </div>
+                        <h3 className="text-sm font-bold text-white mt-2">{area.title}</h3>
+                        <p className="text-xs text-slate-400 mt-1 line-clamp-2">{area.description}</p>
+                        <div className="mt-4 pt-3 border-t border-slate-800 text-xs space-y-1 text-slate-300">
+                          <div>Owner: <span className="text-slate-400">{area.owner}</span></div>
+                          <div>Timeline: <span className="text-slate-400">{area.timeline}</span></div>
+                          <div>Benefit: <span className="text-cyan-400 font-mono">{area.actualBenefit} / {area.plannedBenefit}</span></div>
+                        </div>
+
+                        {/* Linked Work Packages List */}
+                        <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                              <Briefcase size={12} className="text-cyan-400" />
+                              <span>Linked Work Packages ({linkedWps.length})</span>
+                            </span>
+                            <button
+                              onClick={() => {
+                                setEditingWpData({
+                                  id: `WP-${Date.now().toString().slice(-4)}`,
+                                  title: "",
+                                  category: area.category || "Production",
+                                  strategicAreaId: area.id,
+                                  owner: area.owner || "Operations Lead",
+                                  startDate: new Date().toISOString().slice(0, 10),
+                                  dueDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+                                  status: "Open",
+                                  progress: 0,
+                                  priority: "High",
+                                  effortHours: 40,
+                                  actualHours: 0,
+                                  comment: ""
+                                });
+                                setIsWpModalOpen(true);
+                              }}
+                              className="px-2 py-0.5 text-[10px] font-semibold bg-cyan-600/20 text-cyan-300 hover:bg-cyan-600 hover:text-white rounded border border-cyan-500/30 flex items-center gap-1 transition"
+                            >
+                              <Plus size={11} />
+                              <span>+ Add WP</span>
+                            </button>
+                          </div>
+                          {linkedWps.length === 0 ? (
+                            <div className="text-[10px] text-slate-500 italic py-1">No linked work packages yet.</div>
+                          ) : (
+                            <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                              {linkedWps.map((wp) => (
+                                <div key={wp.id} className="p-2 rounded bg-slate-950/60 border border-slate-800/80 flex items-center justify-between gap-2 hover:border-slate-700 transition group/wp">
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5 text-[10px]">
+                                      <span className="font-mono font-bold text-cyan-400">{wp.id}</span>
+                                      <span className={`px-1.5 py-0.2 rounded border text-[9px] ${getStatusBadge(wp.status)}`}>{wp.status}</span>
+                                      <span className="text-slate-400 text-[9px]">{wp.progress}%</span>
+                                    </div>
+                                    <div className="font-medium text-slate-200 text-[11px] truncate mt-0.5">{wp.title}</div>
+                                  </div>
+                                  <div className="flex items-center gap-1 opacity-80 group-hover/wp:opacity-100 shrink-0">
+                                    <button
+                                      onClick={() => {
+                                        setEditingWpData({ ...wp, strategicAreaId: area.id });
+                                        setIsWpModalOpen(true);
+                                      }}
+                                      className="p-1 text-slate-400 hover:text-cyan-400 rounded transition"
+                                      title="Edit work package"
+                                    >
+                                      <Edit3 size={11} />
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setDeleteTarget({ type: "workPackage", id: wp.id, name: wp.title });
+                                        setIsDeleteModalOpen(true);
+                                      }}
+                                      className="p-1 text-slate-400 hover:text-rose-400 rounded transition"
+                                      title="Delete work package"
+                                    >
+                                      <Trash2 size={11} />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+                        <span className="text-xs font-bold text-cyan-400">{area.progress}%</span>
+                        <div className="flex gap-1">
+                          <button onClick={() => { setEditingArea(area); setIsEditAreaModal(true); }} className="p-1 text-slate-400 hover:text-cyan-400" title="Edit Area"><Edit3 size={13} /></button>
+                          <button onClick={() => { setDeleteTarget({ type: "strategicArea", id: area.id, name: area.title }); setIsDeleteModalOpen(true); }} className="p-1 text-slate-400 hover:text-rose-400" title="Delete Area"><Trash2 size={13} /></button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* View 2: List / Table */}
+            {strategicViewMode === "table" && (
+              <div className={`rounded-xl border overflow-x-auto ${cardBgClass}`}>
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950 border-b border-slate-800 text-slate-400">
+                    <tr>
+                      <th className="p-3">ID</th>
+                      <th className="p-3">Title & Category</th>
+                      <th className="p-3">Owner / Site</th>
+                      <th className="p-3">Timeline</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3">Progress</th>
+                      <th className="p-3">Benefit (Act / Plan)</th>
+                      <th className="p-3">Linked Work Packages</th>
+                      <th className="p-3 text-center">Map</th>
+                      <th className="p-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {strategicAreas.map((area) => {
+                      const linkedWps = workPackages.filter(
+                        (wp) => wp.strategicAreaId === area.id || wp.ref === area.id
+                      );
+                      return (
+                        <tr key={area.id} className="hover:bg-slate-800/30 transition">
+                          <td className="p-3 font-mono font-bold text-cyan-400">{area.id}</td>
+                          <td className="p-3">
+                            <div className="font-semibold text-white">{area.title}</div>
+                            <div className="text-[11px] text-slate-400">{area.category}</div>
+                          </td>
+                          <td className="p-3 text-slate-300">
+                            <div>{area.owner}</div>
+                            <div className="text-[11px] text-slate-500">{area.site}</div>
+                          </td>
+                          <td className="p-3 font-mono text-slate-400 text-[11px]">{area.timeline}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded border text-[10px] ${getStatusBadge(area.status)}`}>{area.status}</span>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                <div className="bg-cyan-500 h-full rounded-full" style={{ width: `${area.progress}%` }}></div>
+                              </div>
+                              <span className="font-bold text-cyan-400">{area.progress}%</span>
+                            </div>
+                          </td>
+                          <td className="p-3 font-mono text-cyan-400 text-xs">
+                            {area.actualBenefit} / {area.plannedBenefit}
+                          </td>
+                          <td className="p-3 min-w-[200px]">
+                            <span className="font-mono text-slate-400 text-[11px]">{linkedWps.length} packages linked</span>
+                          </td>
+                          <td className="p-3 text-center">
+                            <input
+                              type="checkbox"
+                              checked={area.showOnMap !== false}
+                              onChange={(e) => {
+                                const checked = e.target.checked;
+                                setStrategicAreas((prev) => prev.map((a) => (a.id === area.id ? { ...a, showOnMap: checked } : a)));
+                              }}
+                              className="accent-cyan-500 rounded cursor-pointer"
+                              title="Toggle Wardley Map"
+                            />
+                          </td>
+                          <td className="p-3 text-right whitespace-nowrap">
+                            <button onClick={() => { setEditingArea(area); setIsEditAreaModal(true); }} className="p-1 text-slate-400 hover:text-cyan-400 mr-1" title="Edit Area">
+                              <Edit3 size={13} />
+                            </button>
+                            <button onClick={() => { setDeleteTarget({ type: "strategicArea", id: area.id, name: area.title }); setIsDeleteModalOpen(true); }} className="p-1 text-slate-400 hover:text-rose-400" title="Delete Area">
+                              <Trash2 size={13} />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* View 3: Gantt Chart */}
+            {strategicViewMode === "gantt" && (() => {
+              const areasWithDates = strategicAreas
+                .map((area) => ({ ...area, dates: getStrategicAreaDates(area) }));
+
+              if (areasWithDates.length === 0) {
+                return (
+                  <div className={`p-8 rounded-xl border text-center space-y-2 ${cardBgClass}`}>
+                    <Calendar size={28} className="mx-auto text-slate-500" />
+                    <h3 className="text-sm font-semibold text-white">No Strategic Areas Available</h3>
+                    <p className="text-xs text-slate-400 max-w-md mx-auto">
+                      Please add strategic areas to display the roadmap.
+                    </p>
+                  </div>
+                );
+              }
+
+              const nowMs = Date.now();
+              const allStartMs = areasWithDates.map((a) => a.dates.startMs);
+              const allEndMs = areasWithDates.map((a) => a.dates.endMs);
+              // Ensure the timeline boundaries always include "Today" and all scheduled initiatives with padding
+              const minMs = Math.min(...allStartMs, nowMs) - 86400000 * 5;
+              const maxMs = Math.max(...allEndMs, nowMs) + 86400000 * 10;
+              const totalSpanMs = Math.max(86400000 * 14, maxMs - minMs);
+              const todayPct = Math.max(0.5, Math.min(99.5, ((nowMs - minMs) / totalSpanMs) * 100));
+
+              const timeMarkers = [0, 0.25, 0.5, 0.75, 1].map((pct) => {
+                const date = new Date(minMs + pct * totalSpanMs);
+                return {
+                  pct: pct * 100,
+                  label: date.toLocaleDateString("en-GB", { month: "short", year: "2-digit" })
+                };
+              });
+
+              return (
+                <div className={`p-5 rounded-xl border space-y-5 relative ${cardBgClass}`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-800">
+                    <div className="flex items-center gap-2 text-xs">
+                      <Calendar size={14} className="text-cyan-400" />
+                      <span className="font-bold text-white">Strategic Roadmap Schedule</span>
+                      <span className="text-slate-400 font-mono text-[11px]">
+                        ({areasWithDates.length} Strategic Areas Active)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono border border-rose-500/40 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                        Today: {new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                      </span>
+                      <span className="text-[11px] text-slate-400 font-mono">
+                        {new Date(minMs).toLocaleDateString("en-GB", { month: "short", year: "numeric" })} → {new Date(maxMs).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="relative h-6 border-b border-slate-800 text-[10px] text-slate-400 font-mono select-none">
+                    {timeMarkers.map((m, idx) => (
+                      <div
+                        key={idx}
+                        style={{ left: `${m.pct}%` }}
+                        className="absolute -translate-x-1/2 flex flex-col items-center"
+                      >
+                        <span>{m.label}</span>
+                        <div className="h-1.5 w-px bg-slate-700 mt-0.5"></div>
+                      </div>
+                    ))}
+                    {/* Visual Today Indicator Pill in Header */}
+                    <div
+                      style={{ left: `${todayPct}%` }}
+                      className="absolute -top-1.5 -translate-x-1/2 flex flex-col items-center z-30 pointer-events-none"
+                    >
+                      <span className="px-2 py-0.5 bg-rose-600 text-white rounded-full text-[9px] font-bold shadow-md whitespace-nowrap flex items-center gap-1 border border-rose-400">
+                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                        Today ({new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short" })})
+                      </span>
+                      <div className="h-2 w-0.5 bg-rose-500"></div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3.5 relative">
+                    {/* Vertical Red Dashed Today Line Running Down Entire Gantt Chart */}
+                    <div
+                      style={{ left: `${todayPct}%` }}
+                      className="absolute top-0 bottom-0 w-0 border-l-2 border-dashed border-rose-500 z-20 pointer-events-none shadow-sm"
+                    ></div>
+
+                    {areasWithDates.map((area) => {
+                      const leftPct = Math.max(0, Math.min(95, ((area.dates.startMs - minMs) / totalSpanMs) * 100));
+                      const widthPct = Math.max(
+                        4,
+                        Math.min(100 - leftPct, ((area.dates.endMs - area.dates.startMs) / totalSpanMs) * 100)
+                      );
+
+                      return (
+                        <div key={area.id} className="space-y-1 text-xs">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 truncate min-w-0">
+                              <span className="font-mono font-bold text-cyan-400 text-[11px]">{area.id}</span>
+                              <span className="font-semibold text-white truncate">{area.title}</span>
+                              <span className={`px-1.5 py-0.2 rounded border text-[9px] ${getStatusBadge(area.status)}`}>
+                                {area.status}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0 text-slate-400 text-[11px] font-mono">
+                              <span>{area.dates.start} → {area.dates.end}</span>
+                              <span className="font-bold text-cyan-400">{area.progress}%</span>
+                              <button
+                                onClick={() => {
+                                  setEditingArea(area);
+                                  setIsEditAreaModal(true);
+                                }}
+                                className="p-0.5 text-slate-400 hover:text-cyan-400"
+                                title="Edit Area"
+                              >
+                                <Edit3 size={11} />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="h-7 w-full bg-slate-950/80 rounded-lg border border-slate-800/80 relative overflow-hidden flex items-center">
+                            {timeMarkers.map((m, idx) => (
+                              <div
+                                key={idx}
+                                style={{ left: `${m.pct}%` }}
+                                className="absolute inset-y-0 w-px bg-slate-800/40 pointer-events-none"
+                              ></div>
+                            ))}
+
+                            {/* Today vertical guideline inside row */}
+                            <div
+                              style={{ left: `${todayPct}%` }}
+                              className="absolute inset-y-0 w-0 border-l-2 border-dashed border-rose-500/90 z-20 pointer-events-none"
+                            ></div>
+
+                            <div
+                              style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
+                              className="absolute h-5 rounded bg-gradient-to-r from-cyan-700 to-cyan-600 hover:from-cyan-600 hover:to-cyan-500 border border-cyan-400/60 flex items-center px-2 shadow-sm transition group cursor-pointer z-10"
+                              onClick={() => {
+                                setEditingArea(area);
+                                setIsEditAreaModal(true);
+                              }}
+                              title={`${area.id}: ${area.title} (${area.dates.start} to ${area.dates.end})`}
+                            >
+                              <div
+                                style={{ width: `${area.progress}%` }}
+                                className="absolute inset-y-0 left-0 bg-cyan-400/40 rounded-l"
+                              ></div>
+                              <span className="relative z-10 text-[10px] font-bold text-white truncate drop-shadow">
+                                {area.id} • {area.title} ({area.progress}%)
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* WORK PACKAGES TAB */}
+        {activeTab === "workpackages" && (
+          <div className="space-y-4 animate-fadeIn">
+            <div className={`p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 ${cardBgClass}`}>
+              <div>
+                <h2 className="text-sm font-bold tracking-tight">Work Package Execution Roadmap</h2>
+                <p className={`text-xs ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
+                  Track sprint status, effort hours, and deadlines with Kanban, Gantt, and tabular views.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className={`flex items-center p-1 rounded-lg border text-xs ${isDarkMode ? "bg-slate-950 border-slate-800" : "bg-slate-100 border-slate-300"}`}>
+                  <button onClick={() => setWpViewMode("kanban")} className={`px-3 py-1 rounded font-medium ${wpViewMode === "kanban" ? "bg-cyan-600 text-white" : "text-slate-400"}`}>Kanban</button>
+                  <button onClick={() => setWpViewMode("gantt")} className={`px-3 py-1 rounded font-medium ${wpViewMode === "gantt" ? "bg-cyan-600 text-white" : "text-slate-400"}`}>Gantt</button>
+                  <button onClick={() => setWpViewMode("table")} className={`px-3 py-1 rounded font-medium ${wpViewMode === "table" ? "bg-cyan-600 text-white" : "text-slate-400"}`}>Table</button>
+                </div>
+
+                <button
+                  onClick={() => {
+                    const newId = `WP-${Date.now().toString().slice(-3)}`;
+                    const newWp = {
+                      id: newId,
+                      title: "New Operational Task",
+                      category: "Production",
+                      strategicAreaId: strategicAreas[0]?.id || "SH-01",
+                      owner: "Manufacturing Team",
+                      startDate: new Date().toISOString().slice(0, 10),
+                      dueDate: new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10),
+                      status: "Open",
+                      progress: 0,
+                      priority: "Medium",
+                      effortHours: 40,
+                      actualHours: 0,
+                      comment: ""
+                    };
+                    setWorkPackages((prev) => [...prev, newWp]);
+                  }}
+                  className="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-semibold text-xs flex items-center gap-1.5 transition"
+                >
+                  <Plus size={13} />
+                  <span>New Task</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Kanban Mode */}
+            {wpViewMode === "kanban" && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {["Open", "In Progress", "Completed", "Planned"].map((colStatus) => {
+                  const items = workPackages.filter((w) => w.status === colStatus);
+                  return (
+                    <div key={colStatus} className="p-4 rounded-xl border bg-slate-950/40 border-slate-800 space-y-3">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-xs font-bold text-slate-300">
+                        <span>{colStatus}</span>
+                        <span className="px-2 py-0.5 rounded bg-slate-800 font-mono text-[10px]">{items.length}</span>
+                      </div>
+                      <div className="space-y-3">
+                        {items.map((wp) => (
+                          <div key={wp.id} className={`p-3.5 rounded-lg border space-y-2 ${cardBgClass}`}>
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="font-mono font-bold text-cyan-400">{wp.id}</span>
+                              <span className={`px-1.5 py-0.2 rounded border ${getStatusBadge(wp.priority)}`}>{wp.priority}</span>
+                            </div>
+                            <h4 className="text-xs font-semibold text-slate-100">{wp.title}</h4>
+                            <div className="text-[11px] text-slate-400 space-y-0.5">
+                              <div>Owner: {wp.owner}</div>
+                              <div>Due: {wp.dueDate}</div>
+                            </div>
+                            <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
+                              <span className="text-[11px] text-cyan-400 font-semibold">{wp.progress}%</span>
+                              <button
+                                onClick={() => {
+                                  setDeleteTarget({ type: "workPackage", id: wp.id, name: wp.title });
+                                  setIsDeleteModalOpen(true);
+                                }}
+                                className="text-slate-400 hover:text-rose-400"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Gantt Mode */}
+            {wpViewMode === "gantt" && (() => {
+              const validWps = workPackages
+                .map((wp) => {
+                  const sMs = wp.startDate ? new Date(wp.startDate).getTime() : NaN;
+                  const eMs = wp.dueDate ? new Date(wp.dueDate).getTime() : NaN;
+                  if (isNaN(sMs) || isNaN(eMs) || sMs >= eMs) return null;
+                  return { ...wp, sMs, eMs };
+                })
+                .filter(Boolean);
+
+              if (validWps.length === 0) {
+                return (
+                  <div className={`p-8 rounded-xl border text-center space-y-2 ${cardBgClass}`}>
+                    <Calendar size={28} className="mx-auto text-slate-500" />
+                    <h3 className="text-sm font-semibold text-white">No Scheduled Work Packages</h3>
+                    <p className="text-xs text-slate-400 max-w-md mx-auto">
+                      Work packages appear in this Gantt Roadmap only when both a valid start date and due date are specified.
+                    </p>
+                  </div>
+                );
+              }
+
+              const nowMs = Date.now();
+              const wpMinMs = Math.min(...validWps.map((w) => w.sMs), nowMs) - 86400000 * 3;
+              const wpMaxMs = Math.max(...validWps.map((w) => w.eMs), nowMs) + 86400000 * 7;
+              const wpSpanMs = Math.max(86400000 * 14, wpMaxMs - wpMinMs);
+              const todayPct = Math.max(0.5, Math.min(99.5, ((nowMs - wpMinMs) / wpSpanMs) * 100));
+
+              const timeMarkers = [0, 0.25, 0.5, 0.75, 1].map((pct) => {
+                const d = new Date(wpMinMs + pct * wpSpanMs);
+                return {
+                  pct: pct * 100,
+                  label: d.toLocaleDateString("en-GB", { month: "short", day: "2-digit" })
+                };
+              });
+
+              return (
+                <div className={`p-5 rounded-xl border space-y-4 relative ${cardBgClass}`}>
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                    <div className="flex items-center gap-2 text-xs">
+                      <Calendar size={14} className="text-cyan-400" />
+                      <span className="font-bold text-white">Work Packages Gantt Schedule</span>
+                      <span className="text-slate-500 font-mono text-[11px]">
+                        ({validWps.length} of {workPackages.length} scheduled)
+                      </span>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono border border-rose-500/40 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                      Today: {new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                    </span>
+                  </div>
+
+                  {/* Header Time Markers */}
+                  <div className="relative h-6 border-b border-slate-800 text-[10px] text-slate-400 font-mono select-none">
+                    {timeMarkers.map((m, idx) => (
+                      <div
+                        key={idx}
+                        style={{ left: `${m.pct}%` }}
+                        className="absolute -translate-x-1/2 flex flex-col items-center"
+                      >
+                        <span>{m.label}</span>
+                        <div className="h-1.5 w-px bg-slate-700 mt-0.5"></div>
+                      </div>
+                    ))}
+                    {/* Visual Today Indicator Pill in Header */}
+                    <div
+                      style={{ left: `${todayPct}%` }}
+                      className="absolute -top-1.5 -translate-x-1/2 flex flex-col items-center z-30 pointer-events-none"
+                    >
+                      <span className="px-2 py-0.5 bg-rose-600 text-white rounded-full text-[9px] font-bold shadow-md whitespace-nowrap flex items-center gap-1 border border-rose-400">
+                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                        Today ({new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short" })})
+                      </span>
+                      <div className="h-2 w-0.5 bg-rose-500"></div>
+                    </div>
+                  </div>
+
+                  {/* Rows */}
+                  <div className="space-y-3 relative">
+                    {/* Vertical Red Dashed Today Line Running Down Work Packages Chart */}
+                    <div
+                      style={{ left: `${todayPct}%` }}
+                      className="absolute top-0 bottom-0 w-0 border-l-2 border-dashed border-rose-500 z-20 pointer-events-none shadow-sm"
+                    ></div>
+
+                    {validWps.map((wp) => {
+                      const leftPct = Math.max(0, Math.min(95, ((wp.sMs - wpMinMs) / wpSpanMs) * 100));
+                      const widthPct = Math.max(
+                        3,
+                        Math.min(100 - leftPct, ((wp.eMs - wp.sMs) / wpSpanMs) * 100)
+                      );
+
+                      return (
+                        <div key={wp.id} className="space-y-1 text-xs">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 truncate min-w-0">
+                              <span className="font-mono font-bold text-cyan-400 text-[11px]">{wp.id}</span>
+                              <span className="font-medium text-slate-200 truncate">{wp.title}</span>
+                              <span className={`px-1.5 py-0.2 rounded border text-[9px] ${getStatusBadge(wp.status)}`}>
+                                {wp.status}
+                              </span>
+                            </div>
+                            <span className="text-slate-400 font-mono text-[10px] shrink-0">
+                              {wp.startDate} → {wp.dueDate} ({wp.progress}% completed)
+                            </span>
+                          </div>
+
+                          <div className="h-6 w-full bg-slate-950/80 rounded border border-slate-800 relative overflow-hidden flex items-center">
+                            {timeMarkers.map((m, idx) => (
+                              <div
+                                key={idx}
+                                style={{ left: `${m.pct}%` }}
+                                className="absolute inset-y-0 w-px bg-slate-800/40 pointer-events-none"
+                              ></div>
+                            ))}
+
+                            {/* Today vertical line inside row */}
+                            <div
+                              style={{ left: `${todayPct}%` }}
+                              className="absolute inset-y-0 w-0 border-l-2 border-dashed border-rose-500/90 z-20 pointer-events-none"
+                            ></div>
+
+                            <div
+                              style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
+                              className="absolute h-4 rounded bg-gradient-to-r from-cyan-700 to-cyan-600 hover:from-cyan-600 border border-cyan-400/50 flex items-center px-1.5 cursor-pointer z-10"
+                              onClick={() => {
+                                setEditingWpData(wp);
+                                setIsWpModalOpen(true);
+                              }}
+                              title={`${wp.id}: ${wp.title} (${wp.progress}%)`}
+                            >
+                              <div
+                                style={{ width: `${wp.progress}%` }}
+                                className="absolute inset-y-0 left-0 bg-cyan-400/50 rounded-l"
+                              ></div>
+                              <span className="relative z-10 text-[9px] font-bold text-white truncate">
+                                {wp.progress}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Table Mode */}
+            {wpViewMode === "table" && (
+              <div className={`rounded-xl border overflow-x-auto ${cardBgClass}`}>
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950 border-b border-slate-800 text-slate-400">
+                    <tr>
+                      <th className="p-3">ID</th>
+                      <th className="p-3">Task Title</th>
+                      <th className="p-3">Owner</th>
+                      <th className="p-3">Due Date</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3">Progress</th>
+                      <th className="p-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {workPackages.map((wp) => (
+                      <tr key={wp.id}>
+                        <td className="p-3 font-mono font-bold text-cyan-400">{wp.id}</td>
+                        <td className="p-3 font-medium text-white">{wp.title}</td>
+                        <td className="p-3 text-slate-300">{wp.owner}</td>
+                        <td className="p-3 font-mono text-slate-400">{wp.dueDate}</td>
+                        <td className="p-3"><span className={`px-2 py-0.5 rounded border text-[10px] ${getStatusBadge(wp.status)}`}>{wp.status}</span></td>
+                        <td className="p-3 font-bold text-cyan-400">{wp.progress}%</td>
+                        <td className="p-3 text-right">
+                          <button
+                            onClick={() => {
+                              setDeleteTarget({ type: "workPackage", id: wp.id, name: wp.title });
+                              setIsDeleteModalOpen(true);
+                            }}
+                            className="text-slate-400 hover:text-rose-400"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {}
+        {activeTab === "production" && (
+          <div className="space-y-6 animate-fadeIn">
+            <div className={`p-5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${cardBgClass}`}>
+              <div>
+                <h2 className="text-sm font-bold text-white">Live Production Cockpit & Shift Figures</h2>
+                <p className="text-xs text-slate-400">Shopfloor line OEE, Availability, Performance, and Quality tracking (Manual entry active).</p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => setIsLineSelectorModal(true)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium border bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 transition"
+                >
+                  Select Figures ({productionLines.filter((l) => l.showInCockpit !== false).length}/{productionLines.length})
+                </button>
+                <button
+                  onClick={() => {
+                    const newId = `LINE-0${productionLines.length + 1}`;
+                    setEditingLine({
+                      id: newId,
+                      line: "New Production Line",
+                      oee: "80.0%",
+                      avail: "90.0%",
+                      perf: "90.0%",
+                      qual: "98.0%",
+                      status: "Green",
+                      showInCockpit: true
+                    });
+                    setIsEditLineModal(true);
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white flex items-center gap-1.5 transition"
+                >
+                  <Plus size={13} />
+                  <span>+ Add Production Line</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {productionLines
+                .filter((line) => line.showInCockpit !== false)
+                .map((line) => (
+                  <div key={line.id} className={`p-5 rounded-xl border space-y-4 relative group ${cardBgClass}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[10px] text-cyan-400 font-bold">{line.id}</span>
+                        <h3 className="text-xs font-bold text-white">{line.line}</h3>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          line.status === 'Green' ? 'bg-emerald-500/20 text-emerald-400' :
+                          line.status === 'Yellow' ? 'bg-amber-500/20 text-amber-400' : 'bg-rose-500/20 text-rose-400'
+                        }`}>
+                          {line.status}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setEditingLine({ ...line });
+                            setIsEditLineModal(true);
+                          }}
+                          className="p-1 text-slate-400 hover:text-cyan-400 transition"
+                          title="Edit Production Figures"
+                        >
+                          <Edit3 size={13} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setDeleteTarget({ type: "productionLine", id: line.id, name: line.line });
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="p-1 text-slate-400 hover:text-rose-400 transition"
+                          title="Delete Line"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="p-2.5 rounded bg-slate-950 border border-slate-800">
+                        <div className="text-slate-500 text-[10px]">OEE</div>
+                        <div className="text-lg font-bold text-cyan-400 mt-0.5">{line.oee}</div>
+                      </div>
+                      <div className="p-2.5 rounded bg-slate-950 border border-slate-800">
+                        <div className="text-slate-500 text-[10px]">Availability</div>
+                        <div className="text-lg font-bold text-slate-200 mt-0.5">{line.avail}</div>
+                      </div>
+                      <div className="p-2.5 rounded bg-slate-950 border border-slate-800">
+                        <div className="text-slate-500 text-[10px]">Performance</div>
+                        <div className="text-lg font-bold text-slate-200 mt-0.5">{line.perf}</div>
+                      </div>
+                      <div className="p-2.5 rounded bg-slate-950 border border-slate-800">
+                        <div className="text-slate-500 text-[10px]">Quality Gate</div>
+                        <div className="text-lg font-bold text-emerald-400 mt-0.5">{line.qual}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "risks" && (
+          <div className="space-y-4 animate-fadeIn">
+            <div className={`p-4 rounded-xl border flex items-center justify-between ${cardBgClass}`}>
+              <div>
+                <h2 className="text-sm font-bold text-white">Production Risk Compass 2.0 (Heatmap & Escalation)</h2>
+                <p className="text-xs text-slate-400">Score = Probability (1-5) × Impact (1-5) with mitigation tracking.</p>
+              </div>
+              <button
+                onClick={() => {
+                  const newRisk = {
+                    id: `RSK-0${risks.length + 1}`,
+                    title: "New Operational Risk",
+                    category: "Supplier Risk",
+                    probability: 3,
+                    impact: 3,
+                    riskScore: 9,
+                    trend: "Stable",
+                    reviewDate: new Date().toISOString().slice(0, 10),
+                    escalationLevel: "Level 1 - Operational",
+                    mitigationCost: "€10,000",
+                    residualRisk: "Low",
+                    status: "Active",
+                    owner: "Risk Manager",
+                    mitigation: "Establish second-tier alternative supplier."
+                  };
+                  setEditingRisk(newRisk);
+                  setIsEditRiskModal(true);
+                }}
+                className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
+              >
+                <Plus size={13} />
+                <span>+ Add Risk</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {risks.map((risk) => (
+                <div key={risk.id} className={`p-4 rounded-xl border space-y-3 relative group ${cardBgClass}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-rose-400">{risk.id}</span>
+                      <span className="text-[10px] text-slate-400 font-medium">({risk.category})</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`px-2 py-0.5 rounded border text-[10px] ${getStatusBadge(risk.status)}`}>{risk.status}</span>
+                      <button
+                        onClick={() => {
+                          setEditingRisk(risk);
+                          setIsEditRiskModal(true);
+                        }}
+                        className="p-1 text-slate-400 hover:text-cyan-400 transition"
+                        title="Edit Risk"
+                      >
+                        <Edit3 size={13} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeleteTarget({ type: "risk", id: risk.id, name: risk.title });
+                          setIsDeleteModalOpen(true);
+                        }}
+                        className="p-1 text-slate-400 hover:text-rose-400 transition"
+                        title="Delete Risk"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+                  <h3 className="text-xs font-bold text-white">{risk.title}</h3>
+                  <div className="grid grid-cols-3 gap-2 text-[11px] bg-slate-950/60 p-2 rounded border border-slate-800">
+                    <div>Score: <strong className="text-rose-400 font-mono">{risk.riskScore || (risk.probability * risk.impact)}</strong></div>
+                    <div>Trend: <span className="text-cyan-400">{risk.trend}</span></div>
+                    <div>Cost: <span className="text-slate-200">{risk.mitigationCost}</span></div>
+                  </div>
+                  <p className="text-[11px] text-slate-300"><strong>Mitigation:</strong> {risk.mitigation}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === "actions" && (
+          <div className="space-y-4 animate-fadeIn">
+            <div className={`p-4 rounded-xl border flex items-center justify-between ${cardBgClass}`}>
+              <div>
+                <h2 className="text-sm font-bold text-white">Meeting Action Tracker</h2>
+                <p className="text-xs text-slate-400">Track decisions made across operations meetings and steering committees.</p>
+              </div>
+              <button
+                onClick={() => {
+                  const newAction = {
+                    actionId: `ACT-0${meetingActions.length + 1}`,
+                    title: "New Action Item",
+                    owner: "Plant Lead",
+                    dueDate: new Date().toISOString().slice(0, 10),
+                    sourceMeeting: "Operations Review",
+                    status: "Open",
+                    priority: "High",
+                    comments: ""
+                  };
+                  setMeetingActions((prev) => [...prev, newAction]);
+                }}
+                className="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition"
+              >
+                <Plus size={13} />
+                <span>+ Add Action</span>
+              </button>
+            </div>
+
+            <div className={`rounded-xl border overflow-x-auto ${cardBgClass}`}>
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-950 border-b border-slate-800 text-slate-400">
+                  <tr>
+                    <th className="p-3">ID</th>
+                    <th className="p-3">Action Item</th>
+                    <th className="p-3">Owner</th>
+                    <th className="p-3">Due Date</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800">
+                  {meetingActions.map((act) => (
+                    <tr key={act.actionId}>
+                      <td className="p-3 font-mono font-bold text-cyan-400">{act.actionId}</td>
+                      <td className="p-3 font-medium text-white">{act.title}</td>
+                      <td className="p-3 text-slate-300">{act.owner}</td>
+                      <td className="p-3 font-mono text-slate-400">{act.dueDate}</td>
+                      <td className="p-3"><span className={`px-2 py-0.5 rounded border text-[10px] ${getStatusBadge(act.status)}`}>{act.status}</span></td>
+                      <td className="p-3 text-right">
+                        <button
+                          onClick={() => {
+                            setDeleteTarget({ type: "action", id: act.actionId, name: act.title });
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="text-slate-400 hover:text-rose-400"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "scenarios" && (
+          <div className="space-y-6 animate-fadeIn">
+            <div className={`p-5 rounded-xl border ${cardBgClass}`}>
+              <h2 className="text-sm font-bold text-white">Operations Scenario Planning Simulator</h2>
+              <p className="text-xs text-slate-400">Simulate headcount, investments, and automation with impact projections.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {scenarios.map((sc) => (
+                <div key={sc.id} className={`p-5 rounded-xl border space-y-3 ${cardBgClass}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-bold text-cyan-400">{sc.type}</span>
+                    <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">Model</span>
+                  </div>
+                  <h3 className="text-sm font-bold text-white">{sc.name}</h3>
+                  <p className="text-xs text-slate-400">{sc.description}</p>
+                  <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-800 text-xs">
+                    <div className="p-2 rounded bg-slate-950 border border-slate-800">
+                      <div className="text-slate-500 text-[10px]">KPI Impact</div>
+                      <div className="font-bold text-emerald-400 mt-0.5">{sc.impactKPI}</div>
+                    </div>
+                    <div className="p-2 rounded bg-slate-950 border border-slate-800">
+                      <div className="text-slate-500 text-[10px]">Cost Impact</div>
+                      <div className="font-bold text-rose-400 mt-0.5">{sc.impactCost}</div>
+                    </div>
+                    <div className="p-2 rounded bg-slate-950 border border-slate-800">
+                      <div className="text-slate-500 text-[10px]">Lead Time</div>
+                      <div className="font-bold text-cyan-400 mt-0.5">{sc.impactLeadTime}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      {}
+      {/* MODAL: EDIT / ADD STRATEGIC AREA */}
+      {isEditAreaModal && editingArea && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`p-6 rounded-2xl border max-w-lg w-full space-y-4 shadow-2xl ${cardBgClass}`}>
+            <h3 className="text-sm font-bold text-white">Strategic Focus Area ({editingArea.id})</h3>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 mb-1">Initiative Title</label>
+                <input
+                  type="text"
+                  value={editingArea.title}
+                  onChange={(e) => setEditingArea({ ...editingArea, title: e.target.value })}
+                  className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-400 mb-1">Owner / Lead</label>
+                  <input
+                    type="text"
+                    value={editingArea.owner}
+                    onChange={(e) => setEditingArea({ ...editingArea, owner: e.target.value })}
+                    className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">Status</label>
+                  <select
+                    value={editingArea.status}
+                    onChange={(e) => setEditingArea({ ...editingArea, status: e.target.value })}
+                    className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                  >
+                    <option value="Open">Open</option>
+                    <option value="In Preparation">In Preparation</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Planned">Planned</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Start & End Dates */}
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-400 mb-1">Start Date (for Gantt)</label>
+                  <input
+                    type="date"
+                    value={editingArea.startDate || (editingArea.timeline?.match(/\d{4}-\d{2}-\d{2}/g)?.[0] || "")}
+                    onChange={(e) => {
+                      const newStart = e.target.value;
+                      const end = editingArea.endDate || (editingArea.timeline?.match(/\d{4}-\d{2}-\d{2}/g)?.[1] || "");
+                      setEditingArea({
+                        ...editingArea,
+                        startDate: newStart,
+                        timeline: newStart && end ? `${newStart} – ${end}` : editingArea.timeline
+                      });
+                    }}
+                    className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">End Date (for Gantt)</label>
+                  <input
+                    type="date"
+                    value={editingArea.endDate || (editingArea.timeline?.match(/\d{4}-\d{2}-\d{2}/g)?.[1] || "")}
+                    onChange={(e) => {
+                      const newEnd = e.target.value;
+                      const start = editingArea.startDate || (editingArea.timeline?.match(/\d{4}-\d{2}-\d{2}/g)?.[0] || "");
+                      setEditingArea({
+                        ...editingArea,
+                        endDate: newEnd,
+                        timeline: start && newEnd ? `${start} – ${newEnd}` : editingArea.timeline
+                      });
+                    }}
+                    className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1">Description</label>
+                <textarea
+                  rows={2}
+                  value={editingArea.description}
+                  onChange={(e) => setEditingArea({ ...editingArea, description: e.target.value })}
+                  className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                />
+              </div>
+
+              {/* Coordinates Sliders */}
+              <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2">
+                <span className="font-bold text-cyan-400 block text-[11px]">Wardley Map Coordinates</span>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-slate-400 block text-[10px]">Evolution Stage (X: {editingArea.evolutionX}%)</label>
+                    <input
+                      type="range"
+                      min="5"
+                      max="95"
+                      value={editingArea.evolutionX ?? 50}
+                      onChange={(e) => setEditingArea({ ...editingArea, evolutionX: parseInt(e.target.value, 10) })}
+                      className="w-full accent-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-slate-400 block text-[10px]">Visibility Height (Y: {editingArea.visibilityY}%)</label>
+                    <input
+                      type="range"
+                      min="8"
+                      max="95"
+                      value={editingArea.visibilityY ?? 50}
+                      onChange={(e) => setEditingArea({ ...editingArea, visibilityY: parseInt(e.target.value, 10) })}
+                      className="w-full accent-cyan-500"
+                    />
+                  </div>
+                </div>
+                <label className="flex items-center gap-2 text-slate-300 cursor-pointer pt-1">
+                  <input
+                    type="checkbox"
+                    checked={editingArea.showOnMap !== false}
+                    onChange={(e) => setEditingArea({ ...editingArea, showOnMap: e.target.checked })}
+                    className="accent-cyan-500 rounded"
+                  />
+                  <span>Display on Wardley Canvas</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+              <button onClick={() => setIsEditAreaModal(false)} className="px-3 py-1.5 bg-slate-800 rounded text-xs">Cancel</button>
+              <button
+                onClick={() => {
+                  setStrategicAreas((prev) => {
+                    const exists = prev.some((a) => a.id === editingArea.id);
+                    if (exists) return prev.map((a) => (a.id === editingArea.id ? editingArea : a));
+                    return [...prev, editingArea];
+                  });
+                  setIsEditAreaModal(false);
+                }}
+                className="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-semibold"
+              >
+                Save Area
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT / ADD VALUE CHAIN STEP */}
+      {isEditStandardStepModal && editingStandardStep && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`p-6 rounded-2xl border max-w-md w-full space-y-4 shadow-2xl ${cardBgClass}`}>
+            <h3 className="text-sm font-bold text-white">Value Chain Step ({editingStandardStep.id})</h3>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 mb-1">Step Name</label>
+                <input
+                  type="text"
+                  value={editingStandardStep.name}
+                  onChange={(e) => setEditingStandardStep({ ...editingStandardStep, name: e.target.value })}
+                  className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-400 mb-1">Operational Owner</label>
+                <input
+                  type="text"
+                  value={editingStandardStep.owner}
+                  onChange={(e) => setEditingStandardStep({ ...editingStandardStep, owner: e.target.value })}
+                  className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                />
+              </div>
+              <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2">
+                <span className="font-bold text-cyan-400 block text-[11px]">Map Position Sliders</span>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-slate-400 block text-[10px]">Evolution X: {editingStandardStep.evolutionX}%</label>
+                    <input
+                      type="range"
+                      min="5"
+                      max="95"
+                      value={editingStandardStep.evolutionX ?? 50}
+                      onChange={(e) => setEditingStandardStep({ ...editingStandardStep, evolutionX: parseInt(e.target.value, 10) })}
+                      className="w-full accent-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-slate-400 block text-[10px]">Visibility Y: {editingStandardStep.visibilityY}%</label>
+                    <input
+                      type="range"
+                      min="8"
+                      max="95"
+                      value={editingStandardStep.visibilityY ?? 50}
+                      onChange={(e) => setEditingStandardStep({ ...editingStandardStep, visibilityY: parseInt(e.target.value, 10) })}
+                      className="w-full accent-cyan-500"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label className="block text-slate-400 mb-1">Description</label>
+                <textarea
+                  rows={2}
+                  value={editingStandardStep.description}
+                  onChange={(e) => setEditingStandardStep({ ...editingStandardStep, description: e.target.value })}
+                  className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+              <button onClick={() => setIsEditStandardStepModal(false)} className="px-3 py-1.5 bg-slate-800 rounded text-xs">Cancel</button>
+              <button
+                onClick={() => {
+                  setStandardSteps((prev) => {
+                    const exists = prev.some((s) => s.id === editingStandardStep.id);
+                    if (exists) return prev.map((s) => (s.id === editingStandardStep.id ? editingStandardStep : s));
+                    return [...prev, editingStandardStep];
+                  });
+                  setIsEditStandardStepModal(false);
+                }}
+                className="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-semibold"
+              >
+                Save Component
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT / ADD IMPROVEMENT VECTOR */}
+      {isEditVectorModal && editingVector && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`p-6 rounded-2xl border max-w-md w-full space-y-4 shadow-2xl ${cardBgClass}`}>
+            <h3 className="text-sm font-bold text-white">Improvement Vector ({editingVector.id})</h3>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 mb-1">Origin Node (From)</label>
+                <select
+                  value={editingVector.fromNodeId}
+                  onChange={(e) => setEditingVector({ ...editingVector, fromNodeId: e.target.value })}
+                  className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                >
+                  {allRawNodes.map((n) => (
+                    <option key={n.id} value={n.id}>{n.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-slate-400 mb-1">Target Evolution State Name</label>
+                <input
+                  type="text"
+                  value={editingVector.targetName}
+                  onChange={(e) => setEditingVector({ ...editingVector, targetName: e.target.value })}
+                  className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                />
+              </div>
+              <div>
+                <div className="flex justify-between text-slate-400 mb-1">
+                  <span>Target Evolution X Position: {editingVector.targetX}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="10"
+                  max="95"
+                  value={editingVector.targetX ?? 75}
+                  onChange={(e) => setEditingVector({ ...editingVector, targetX: parseInt(e.target.value, 10) })}
+                  className="w-full accent-rose-500"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-400 mb-1">Strategic Annotation Description</label>
+                <textarea
+                  rows={3}
+                  value={editingVector.annotation}
+                  onChange={(e) => setEditingVector({ ...editingVector, annotation: e.target.value })}
+                  className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-between pt-3 border-t border-slate-800">
+              <button
+                onClick={() => {
+                  setDeleteTarget({ type: "vector", id: editingVector.id, name: `Vector #${editingVector.num}: ${editingVector.targetName}` });
+                  setIsEditVectorModal(false);
+                  setIsDeleteModalOpen(true);
+                }}
+                className="text-rose-400 text-xs font-semibold"
+              >
+                Delete Vector
+              </button>
+              <div className="flex gap-2">
+                <button onClick={() => setIsEditVectorModal(false)} className="px-3 py-1.5 bg-slate-800 rounded text-xs">Cancel</button>
+                <button
+                  onClick={() => {
+                    setWardleyVectors((prev) => {
+                      const exists = prev.some((v) => v.id === editingVector.id);
+                      if (exists) return prev.map((v) => (v.id === editingVector.id ? editingVector : v));
+                      return [...prev, editingVector];
+                    });
+                    setIsEditVectorModal(false);
+                  }}
+                  className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded text-xs font-semibold"
+                >
+                  Save Vector
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: LINKS & DEPENDENCIES MANAGER */}
+      {isLinksManagerModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`p-6 rounded-2xl border max-w-lg w-full space-y-4 shadow-2xl ${cardBgClass}`}>
+            <h3 className="text-sm font-bold text-white">Dependency Links Manager</h3>
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+              <span className="font-bold text-cyan-400 block">Add New Dependency Arrow</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-slate-400 block mb-0.5">From (Source)</label>
+                  <select
+                    value={newLinkSource}
+                    onChange={(e) => setNewLinkSource(e.target.value)}
+                    className="w-full p-1.5 rounded border bg-slate-900 border-slate-800 text-white"
+                  >
+                    {allRawNodes.map((n) => (
+                      <option key={n.id} value={n.id}>{n.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-slate-400 block mb-0.5">To (Target)</label>
+                  <select
+                    value={newLinkTarget}
+                    onChange={(e) => setNewLinkTarget(e.target.value)}
+                    className="w-full p-1.5 rounded border bg-slate-900 border-slate-800 text-white"
+                  >
+                    {allRawNodes.map((n) => (
+                      <option key={n.id} value={n.id}>{n.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  if (newLinkSource && newLinkTarget && newLinkSource !== newLinkTarget) {
+                    setWardleyLinks((prev) => [
+                      ...prev,
+                      { id: `WL-${Date.now()}`, from: newLinkSource, to: newLinkTarget, label: newLinkLabel || "depends on" }
+                    ]);
+                  }
+                }}
+                className="w-full py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded font-bold"
+              >
+                + Connect Dependency
+              </button>
+            </div>
+
+            <div className="max-h-56 overflow-y-auto space-y-1.5 text-xs">
+              <span className="font-bold text-slate-400 block">Active Connection Links ({wardleyLinks.length})</span>
+              {wardleyLinks.map((link) => (
+                <div key={link.id} className="p-2 rounded bg-slate-950 border border-slate-800 flex items-center justify-between">
+                  <span className="font-mono text-cyan-400">{link.from} → {link.to}</span>
+                  <button
+                    onClick={() => setWardleyLinks((prev) => prev.filter((l) => l.id !== link.id))}
+                    className="text-slate-400 hover:text-rose-400 p-1"
+                    title="Remove connection arrow"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end pt-3 border-t border-slate-800">
+              <button onClick={() => setIsLinksManagerModal(false)} className="px-3.5 py-1.5 bg-slate-800 rounded text-xs font-semibold">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {}
+      {/* MODAL: EDIT / ADD RISK */}
+      {isEditRiskModal && editingRisk && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`p-6 rounded-2xl border max-w-lg w-full space-y-4 shadow-2xl ${cardBgClass}`}>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <h3 className="text-sm font-bold text-white">Risk Profile ({editingRisk.id})</h3>
+              <button onClick={() => setIsEditRiskModal(false)} className="text-slate-400 hover:text-white">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 mb-1">Risk Title / Description</label>
+                <input
+                  type="text"
+                  value={editingRisk.title}
+                  onChange={(e) => setEditingRisk({ ...editingRisk, title: e.target.value })}
+                  className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-400 mb-1">Category</label>
+                  <select
+                    value={editingRisk.category}
+                    onChange={(e) => setEditingRisk({ ...editingRisk, category: e.target.value })}
+                    className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                  >
+                    <option value="Supplier Risk">Supplier Risk</option>
+                    <option value="Quality Risk">Quality Risk</option>
+                    <option value="Capacity Risk">Capacity Risk</option>
+                    <option value="Machine Risk">Machine Risk</option>
+                    <option value="Digital/ERP Risk">Digital/ERP Risk</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">Owner</label>
+                  <input
+                    type="text"
+                    value={editingRisk.owner}
+                    onChange={(e) => setEditingRisk({ ...editingRisk, owner: e.target.value })}
+                    className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                <div>
+                  <label className="block text-slate-400 mb-1">Probability (1-5)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="5"
+                    value={editingRisk.probability}
+                    onChange={(e) => {
+                      const prob = parseInt(e.target.value, 10) || 1;
+                      const score = prob * (editingRisk.impact || 1);
+                      setEditingRisk({ ...editingRisk, probability: prob, riskScore: score });
+                    }}
+                    className="w-full p-1.5 rounded border bg-slate-900 border-slate-700 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">Impact (1-5)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="5"
+                    value={editingRisk.impact}
+                    onChange={(e) => {
+                      const imp = parseInt(e.target.value, 10) || 1;
+                      const score = (editingRisk.probability || 1) * imp;
+                      setEditingRisk({ ...editingRisk, impact: imp, riskScore: score });
+                    }}
+                    className="w-full p-1.5 rounded border bg-slate-900 border-slate-700 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">Calculated Score</label>
+                  <div className="p-1.5 font-bold font-mono text-rose-400 bg-slate-900 rounded border border-slate-700 text-center">
+                    {editingRisk.riskScore || editingRisk.probability * editingRisk.impact}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label className="block text-slate-400 mb-1">Mitigation Actions</label>
+                <textarea
+                  rows={2}
+                  value={editingRisk.mitigation}
+                  onChange={(e) => setEditingRisk({ ...editingRisk, mitigation: e.target.value })}
+                  className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+              <button onClick={() => setIsEditRiskModal(false)} className="px-3 py-1.5 bg-slate-800 rounded text-xs">Cancel</button>
+              <button
+                onClick={() => {
+                  setRisks((prev) => {
+                    const exists = prev.some((r) => r.id === editingRisk.id);
+                    if (exists) return prev.map((r) => (r.id === editingRisk.id ? editingRisk : r));
+                    return [...prev, editingRisk];
+                  });
+                  setIsEditRiskModal(false);
+                }}
+                className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded text-xs font-semibold"
+              >
+                Save Risk
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: KPI SELECTOR (CHOOSE VISIBLE KPIS ON DASHBOARD) */}
+      {isKpiSelectorModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`p-6 rounded-2xl border max-w-md w-full space-y-4 shadow-2xl ${cardBgClass}`}>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <h3 className="text-sm font-bold text-white">Dashboard KPI Visibility</h3>
+              <button onClick={() => setIsKpiSelectorModal(false)} className="text-slate-400 hover:text-white">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1 text-xs">
+              {kpis.map((kpi) => (
+                <label key={kpi.id} className="flex items-center justify-between p-2 rounded border bg-slate-950/60 border-slate-800 cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={kpi.showOnDashboard !== false}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setKpis((prev) => prev.map((k) => (k.id === kpi.id ? { ...k, showOnDashboard: checked } : k)));
+                      }}
+                      className="accent-cyan-500 rounded"
+                    />
+                    <span>{kpi.name}</span>
+                  </div>
+                  <span className="font-mono text-cyan-400">{kpi.value}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end pt-3 border-t border-slate-800">
+              <button onClick={() => setIsKpiSelectorModal(false)} className="px-4 py-1.5 bg-cyan-600 text-white rounded text-xs font-semibold">Done</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT / ADD MANUAL KPI */}
+      {isEditKpiModal && editingKpi && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`p-6 rounded-2xl border max-w-md w-full space-y-4 shadow-2xl ${cardBgClass}`}>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <h3 className="text-sm font-bold text-white">Manual KPI Data Entry ({editingKpi.id})</h3>
+              <button onClick={() => setIsEditKpiModal(false)} className="text-slate-400 hover:text-white">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 mb-1">Metric Name</label>
+                <input
+                  type="text"
+                  value={editingKpi.name}
+                  onChange={(e) => setEditingKpi({ ...editingKpi, name: e.target.value })}
+                  className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2.5 p-3 rounded-xl bg-slate-950 border border-slate-800">
+                <div>
+                  <label className="block text-cyan-400 font-bold mb-1">Current Value (Manual)</label>
+                  <input
+                    type="text"
+                    value={editingKpi.value}
+                    onChange={(e) => setEditingKpi({ ...editingKpi, value: e.target.value })}
+                    className="w-full p-2 rounded border bg-slate-900 border-slate-700 text-white font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">Target Value</label>
+                  <input
+                    type="text"
+                    value={editingKpi.target}
+                    onChange={(e) => setEditingKpi({ ...editingKpi, target: e.target.value })}
+                    className="w-full p-2 rounded border bg-slate-900 border-slate-700 text-white font-mono"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-400 mb-1">Status</label>
+                  <select
+                    value={editingKpi.status}
+                    onChange={(e) => setEditingKpi({ ...editingKpi, status: e.target.value })}
+                    className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                  >
+                    <option value="On Target">On Target</option>
+                    <option value="Warning">Warning</option>
+                    <option value="Critical">Critical</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">Trend</label>
+                  <input
+                    type="text"
+                    value={editingKpi.trend}
+                    onChange={(e) => setEditingKpi({ ...editingKpi, trend: e.target.value })}
+                    className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+              <button onClick={() => setIsEditKpiModal(false)} className="px-3 py-1.5 bg-slate-800 rounded text-xs">Cancel</button>
+              <button
+                onClick={() => {
+                  setKpis((prev) => {
+                    const exists = prev.some((k) => k.id === editingKpi.id);
+                    if (exists) return prev.map((k) => (k.id === editingKpi.id ? editingKpi : k));
+                    return [...prev, editingKpi];
+                  });
+                  setIsEditKpiModal(false);
+                }}
+                className="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-semibold"
+              >
+                Save KPI
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT / ADD PRODUCTION LINE FIGURES */}
+      {isEditLineModal && editingLine && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`p-6 rounded-2xl border max-w-md w-full space-y-4 shadow-2xl ${cardBgClass}`}>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <h3 className="text-sm font-bold text-white">Production Line Telemetry ({editingLine.id})</h3>
+              <button onClick={() => setIsEditLineModal(false)} className="text-slate-400 hover:text-white">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 mb-1">Line Name / Designation</label>
+                <input
+                  type="text"
+                  value={editingLine.line}
+                  onChange={(e) => setEditingLine({ ...editingLine, line: e.target.value })}
+                  className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-400 mb-1">Status Light</label>
+                  <select
+                    value={editingLine.status}
+                    onChange={(e) => setEditingLine({ ...editingLine, status: e.target.value })}
+                    className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                  >
+                    <option value="Green">Green (Normal)</option>
+                    <option value="Yellow">Yellow (Warning)</option>
+                    <option value="Red">Red (Interrupted)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">Overall Equipment (OEE)</label>
+                  <input
+                    type="text"
+                    value={editingLine.oee}
+                    onChange={(e) => setEditingLine({ ...editingLine, oee: e.target.value })}
+                    className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-cyan-400 font-bold font-mono"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="block text-slate-400 mb-1">Availability</label>
+                  <input
+                    type="text"
+                    value={editingLine.avail}
+                    onChange={(e) => setEditingLine({ ...editingLine, avail: e.target.value })}
+                    className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">Performance</label>
+                  <input
+                    type="text"
+                    value={editingLine.perf}
+                    onChange={(e) => setEditingLine({ ...editingLine, perf: e.target.value })}
+                    className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">Quality</label>
+                  <input
+                    type="text"
+                    value={editingLine.qual}
+                    onChange={(e) => setEditingLine({ ...editingLine, qual: e.target.value })}
+                    className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+              <button onClick={() => setIsEditLineModal(false)} className="px-3 py-1.5 bg-slate-800 rounded text-xs">
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setProductionLines((prev) => {
+                    const exists = prev.some((l) => l.id === editingLine.id);
+                    if (exists) return prev.map((l) => (l.id === editingLine.id ? editingLine : l));
+                    return [...prev, editingLine];
+                  });
+                  setIsEditLineModal(false);
+                }}
+                className="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-semibold"
+              >
+                Save Line Figures
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: PRODUCTION FIGURES SELECTOR */}
+      {isLineSelectorModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`p-6 rounded-2xl border max-w-md w-full space-y-4 shadow-2xl ${cardBgClass}`}>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <h3 className="text-sm font-bold text-white">Cockpit Figures Visibility</h3>
+              <button onClick={() => setIsLineSelectorModal(false)} className="text-slate-400 hover:text-white">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1 text-xs">
+              {productionLines.map((line) => (
+                <label key={line.id} className="flex items-center justify-between p-2 rounded border bg-slate-950/60 border-slate-800 cursor-pointer hover:border-slate-700">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={line.showInCockpit !== false}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setProductionLines((prev) => prev.map((l) => (l.id === line.id ? { ...l, showInCockpit: checked } : l)));
+                      }}
+                      className="accent-cyan-500 rounded"
+                    />
+                    <span className="font-semibold text-white">{line.line}</span>
+                  </div>
+                  <span className="font-mono text-cyan-400 font-bold">{line.oee}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end pt-3 border-t border-slate-800">
+              <button onClick={() => setIsLineSelectorModal(false)} className="px-4 py-1.5 bg-cyan-600 text-white rounded text-xs font-semibold">
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ADD / EDIT WORK PACKAGE */}
+      {isWpModalOpen && editingWpData && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`p-6 rounded-2xl border max-w-lg w-full space-y-4 shadow-2xl ${cardBgClass}`}>
+            <h3 className="text-sm font-bold text-white">Work Package ({editingWpData.id})</h3>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 mb-1">Title</label>
+                <input
+                  type="text"
+                  value={editingWpData.title}
+                  onChange={(e) => setEditingWpData({ ...editingWpData, title: e.target.value })}
+                  className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-400 mb-1">Strategic Area</label>
+                  <select
+                    value={editingWpData.strategicAreaId}
+                    onChange={(e) => setEditingWpData({ ...editingWpData, strategicAreaId: e.target.value })}
+                    className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                  >
+                    {strategicAreas.map((a) => (
+                      <option key={a.id} value={a.id}>{a.id} - {a.title}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">Owner</label>
+                  <input
+                    type="text"
+                    value={editingWpData.owner}
+                    onChange={(e) => setEditingWpData({ ...editingWpData, owner: e.target.value })}
+                    className="w-full p-2 rounded border bg-slate-950 border-slate-800 text-white"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+              <button onClick={() => setIsWpModalOpen(false)} className="px-3 py-1.5 bg-slate-800 rounded text-xs">Cancel</button>
+              <button
+                onClick={() => {
+                  setWorkPackages((prev) => {
+                    const exists = prev.some((w) => w.id === editingWpData.id);
+                    if (exists) return prev.map((w) => (w.id === editingWpData.id ? editingWpData : w));
+                    return [...prev, editingWpData];
+                  });
+                  setIsWpModalOpen(false);
+                }}
+                className="px-3.5 py-1.5 bg-cyan-600 text-white rounded text-xs font-semibold"
+              >
+                Save Package
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: SAFE DELETE CONFIRMATION */}
+      {isDeleteModalOpen && deleteTarget && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className={`p-6 rounded-2xl border max-w-sm w-full space-y-4 shadow-2xl ${cardBgClass}`}>
+            <h3 className="text-sm font-bold text-white">Confirm Removal</h3>
+            <p className="text-xs text-slate-300">
+              Permanently remove <strong className="text-white">{deleteTarget.name}</strong> and remove any linked dependencies?
+            </p>
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+              <button onClick={() => setIsDeleteModalOpen(false)} className="px-3 py-1.5 bg-slate-800 rounded text-xs">Cancel</button>
+              <button onClick={executeDelete} className="px-3.5 py-1.5 bg-rose-600 text-white rounded text-xs font-semibold">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
